@@ -22,6 +22,9 @@
 #include "hri_safety_sense/EmergencyStop.h"
 #include "hri_safety_sense/KeyValue.h"
 #include "hri_safety_sense/KeyString.h"
+#include <std_msgs/Bool.h>
+#include "std_msgs/String.h"
+
 
 /**
  * HRI_COMMON Includes
@@ -57,6 +60,10 @@ namespace hri_safety_sense {
 		  bool KeyValue(KeyValue::Request &req, KeyValue::Response &res);
 		  bool KeyString(KeyString::Request &req, KeyString::Response &res);
 
+		  void receivedVibration(const std_msgs::Bool msg);
+		  void receivedDisplayCommand(const std_msgs::String::ConstPtr& msg);
+		  void receivedDisplayOffCommand(const std_msgs::String::ConstPtr& msg);
+
 	   private:
 
 		  void readFromVehicle();
@@ -71,6 +78,9 @@ namespace hri_safety_sense {
 		  ros::Timer 	  		mainLoopTimer;
 		  ros::ServiceServer    estopServ, keyValueServ, keyStringServ;
 		  ros::Publisher		estopPub;
+		  ros::Subscriber 		vibrate_src_Sub;
+		  ros::Subscriber 		display_src_on_Sub;
+		  ros::Subscriber 		display_src_off_Sub;
 		  ros::Time 			lastDataRx, lastTxTime;
 
 		  // Message Handlers

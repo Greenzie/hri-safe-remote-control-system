@@ -42,7 +42,7 @@ VscProcess::VscProcess() :
 	myEStopState(0)
 {
 	ros::NodeHandle nh("~");
-	std::string serialPort = "/dev/ttyACM0";
+	std::string serialPort = "/dev/fort_robotics_vsc";
 	if(nh.getParam("port", serialPort)) {
 		ROS_INFO("Serial Port updated to:  %s",serialPort.c_str());
 	}
@@ -85,6 +85,10 @@ VscProcess::VscProcess() :
 	// Publish Emergency Stop Status
 	estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
 
+	vibrate_src_Sub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
+	display_src_on_Sub = rosNode.subscribe("/src_display_mode_on", 1, &VscProcess::receivedDisplayCommand, this);
+	display_src_off_Sub = rosNode.subscribe("/src_display_mode_off", 1, &VscProcess::receivedDisplayOffCommand, this);
+
 	// Main Loop Timer Callback
 	mainLoopTimer = rosNode.createTimer(ros::Duration(1.0/VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
 
@@ -101,6 +105,41 @@ VscProcess::~VscProcess()
 	vsc_cleanup(vscInterface);
 
 	if(joystickHandler) delete joystickHandler;
+}
+
+void VscProcess::receivedVibration(const std_msgs::Bool msg)
+{
+	std::cout << "Recieved Vibration command" <<std::endl;
+	bool recived_msg = msg.data;
+	if (recived_msg == true)
+	{
+		vsc_send_user_feedback(vscInterface, 12,1);
+	}
+}
+
+void VscProcess::receivedDisplayCommand(const std_msgs::String::ConstPtr& msg)
+{
+	vsc_send_user_feedback(vscInterface, 99,1);
+	std::string string = msg->data.c_str();
+	if (string.size() == 0)
+	{
+		vsc_send_user_feedback_string(vscInterface, 90,"GREENZIE");
+		vsc_send_user_feedback_string(vscInterface, 91,"");
+		vsc_send_user_feedback_string(vscInterface, 92,"");
+		vsc_send_user_feedback_string(vscInterface, 93,"");		
+	}
+	else
+	{
+		vsc_send_user_feedback_string(vscInterface, 90, string.c_str());
+		vsc_send_user_feedback_string(vscInterface, 91,"");
+		vsc_send_user_feedback_string(vscInterface, 92,"");
+		vsc_send_user_feedback_string(vscInterface, 93,"");
+	}
+}
+
+void VscProcess::receivedDisplayOffCommand(const std_msgs::String::ConstPtr& msg)
+{
+	vsc_send_user_feedback(vscInterface, 99,0);
 }
 
 bool VscProcess::EmergencyStop(EmergencyStop::Request  &req, EmergencyStop::Response &res )
