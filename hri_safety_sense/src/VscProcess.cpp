@@ -131,8 +131,6 @@ void VscProcess::receivedDisplayOnCommand(const hri_safety_sense::SrcDisplay& ms
 		return;
 	}
 
-	ROS_WARN("asdasdasds");
-
 	// Turn on custom display mode
 	vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
 

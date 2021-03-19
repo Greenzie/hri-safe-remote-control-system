@@ -23,7 +23,6 @@
 #include "hri_safety_sense/KeyValue.h"
 #include "hri_safety_sense/KeyString.h"
 #include <std_msgs/Bool.h>
-#include "std_msgs/String.h"
 #include <std_msgs/Empty.h>
 #include <hri_safety_sense/SrcDisplay.h>
 
