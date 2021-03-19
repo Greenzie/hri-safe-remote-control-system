@@ -62,7 +62,7 @@ namespace hri_safety_sense {
 		  bool KeyString(KeyString::Request &req, KeyString::Response &res);
 
 		  void receivedVibration(const std_msgs::Bool msg);
-		  void receivedDisplayOnCommand(const greenzie_msgs::SrcDisplay msg);
+		  void receivedDisplayOnCommand(const greenzie_msgs::SrcDisplay& msg);
 		  void receivedDisplayOffCommand(const std_msgs::String::ConstPtr& msg);
 
 	   private:

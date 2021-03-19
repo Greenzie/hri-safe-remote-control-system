@@ -116,7 +116,7 @@ void VscProcess::receivedVibration(const std_msgs::Bool msg)
 	}
 }
 
-void VscProcess::receivedDisplayOnCommand(const greenzie_msgs::SrcDisplay msg)
+void VscProcess::receivedDisplayOnCommand(const greenzie_msgs::SrcDisplay& msg)
 {
 	vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
 	if(msg.displayrow1.size()>msg.MAXCHARACTERS)
