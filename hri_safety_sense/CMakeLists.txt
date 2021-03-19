@@ -7,6 +7,7 @@ find_package(catkin REQUIRED
         sensor_msgs
         genmsg
         message_runtime
+        message_generation
 )
 
 include_directories(
@@ -20,6 +21,12 @@ add_service_files(
         EmergencyStop.srv
         KeyString.srv
         KeyValue.srv
+)
+
+add_message_files(
+        DIRECTORY msg
+        FILES
+        SrcDisplay.msg
 )
 
 generate_messages(

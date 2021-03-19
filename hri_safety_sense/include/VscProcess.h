@@ -24,7 +24,8 @@
 #include "hri_safety_sense/KeyString.h"
 #include <std_msgs/Bool.h>
 #include "std_msgs/String.h"
-#include <greenzie_msgs/SrcDisplay.h>
+#include <std_msgs/Empty.h>
+#include <hri_safety_sense/SrcDisplay.h>
 
 
 /**
@@ -62,13 +63,14 @@ namespace hri_safety_sense {
 		  bool KeyString(KeyString::Request &req, KeyString::Response &res);
 
 		  void receivedVibration(const std_msgs::Bool msg);
-		  void receivedDisplayOnCommand(const greenzie_msgs::SrcDisplay& msg);
-		  void receivedDisplayOffCommand(const std_msgs::String::ConstPtr& msg);
+		  void receivedDisplayOnCommand(const hri_safety_sense::SrcDisplay& msg);
+		  void receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg);
 
 	   private:
 
 		  void readFromVehicle();
 		  int handleHeartbeatMsg(VscMsgType& recvMsg);
+		  hri_safety_sense::SrcDisplay prev_msg_;
 
 		  // Local State
 		  uint32_t 				myEStopState;
