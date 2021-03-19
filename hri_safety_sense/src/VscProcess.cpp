@@ -128,8 +128,11 @@ void VscProcess::receivedDisplayOnCommand(const hri_safety_sense::SrcDisplay& ms
 		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg.displayrow2.c_str());
 		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg.displayrow3.c_str());
 		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg.displayrow4.c_str());
+		return;
 	}
-	
+
+	ROS_WARN("asdasdasds");
+
 	// Turn on custom display mode
 	vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
 
