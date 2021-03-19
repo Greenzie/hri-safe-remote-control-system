@@ -24,6 +24,7 @@
 #include "hri_safety_sense/KeyString.h"
 #include <std_msgs/Bool.h>
 #include "std_msgs/String.h"
+#include <greenzie_msgs/SrcDisplay.h>
 
 
 /**
@@ -61,7 +62,7 @@ namespace hri_safety_sense {
 		  bool KeyString(KeyString::Request &req, KeyString::Response &res);
 
 		  void receivedVibration(const std_msgs::Bool msg);
-		  void receivedDisplayCommand(const std_msgs::String::ConstPtr& msg);
+		  void receivedDisplayOnCommand(const greenzie_msgs::SrcDisplay msg);
 		  void receivedDisplayOffCommand(const std_msgs::String::ConstPtr& msg);
 
 	   private:

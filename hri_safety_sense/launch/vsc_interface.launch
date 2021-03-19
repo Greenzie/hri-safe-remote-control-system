@@ -1,8 +1,14 @@
 <launch>
-  <node name="vsc_serial_interface"
-        pkg="hri_safety_sense"
-        type="safe_remote_control"
-        respawn="true">
-    <param name="port" value="/dev/fort_robotics_vsc"/>
-  </node>
+  <!-- Start a serial interface with the vsc on "safety_port" -->
+  <arg name="safety_port" default="/dev/ttyACM0"/>
+  <arg name="vsc_interface_enable"  default="true"/>
+    <group if="$(arg vsc_interface_enable)">
+      <!-- Start a serial interface to vsc on 'safety_port' -->
+        <node name="vsc_serial_interface"
+              pkg="hri_safety_sense"
+              type="safe_remote_control"
+              respawn="true">
+          <param name="port" value="$(arg safety_port)"/>
+        </node>
+    </group>
 </launch>

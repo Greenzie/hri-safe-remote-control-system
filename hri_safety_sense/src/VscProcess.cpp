@@ -42,7 +42,7 @@ VscProcess::VscProcess() :
 	myEStopState(0)
 {
 	ros::NodeHandle nh("~");
-	std::string serialPort = "/dev/fort_robotics_vsc";
+	std::string serialPort = "/dev/ttyACM0";
 	if(nh.getParam("port", serialPort)) {
 		ROS_INFO("Serial Port updated to:  %s",serialPort.c_str());
 	}
@@ -85,9 +85,9 @@ VscProcess::VscProcess() :
 	// Publish Emergency Stop Status
 	estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
 
-	vibrate_src_Sub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
-	display_src_on_Sub = rosNode.subscribe("/src_display_mode_on", 1, &VscProcess::receivedDisplayCommand, this);
-	display_src_off_Sub = rosNode.subscribe("/src_display_mode_off", 1, &VscProcess::receivedDisplayOffCommand, this);
+	vibrate_src_Sub = rosNode.subscribe("/src_vibrate", 10, &VscProcess::receivedVibration, this);
+	display_src_on_Sub = rosNode.subscribe("/src_display_mode_on", 10, &VscProcess::receivedDisplayOnCommand, this);
+	display_src_off_Sub = rosNode.subscribe("/src_display_mode_off", 10, &VscProcess::receivedDisplayOffCommand, this);
 
 	// Main Loop Timer Callback
 	mainLoopTimer = rosNode.createTimer(ros::Duration(1.0/VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
@@ -109,37 +109,42 @@ VscProcess::~VscProcess()
 
 void VscProcess::receivedVibration(const std_msgs::Bool msg)
 {
-	std::cout << "Recieved Vibration command" <<std::endl;
-	bool recived_msg = msg.data;
-	if (recived_msg == true)
+	bool received_msg = msg.data;
+	if (received_msg == true)
 	{
-		vsc_send_user_feedback(vscInterface, 12,1);
+		vsc_send_user_feedback(vscInterface, VSC_USER_BOTH_MOTOR_INTENSITY, MOTOR_CONTROL_INTENSITY_HIGH);
 	}
 }
 
-void VscProcess::receivedDisplayCommand(const std_msgs::String::ConstPtr& msg)
+void VscProcess::receivedDisplayOnCommand(const greenzie_msgs::SrcDisplay msg)
 {
-	vsc_send_user_feedback(vscInterface, 99,1);
-	std::string string = msg->data.c_str();
-	if (string.size() == 0)
+	vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
+	if(msg.displayrow1.size()>msg.MAXCHARACTERS)
 	{
-		vsc_send_user_feedback_string(vscInterface, 90,"GREENZIE");
-		vsc_send_user_feedback_string(vscInterface, 91,"");
-		vsc_send_user_feedback_string(vscInterface, 92,"");
-		vsc_send_user_feedback_string(vscInterface, 93,"");		
+		ROS_WARN("Maximum characters limit reached for display row 1. Please enter upto 20 characters.");
 	}
-	else
+	if(msg.displayrow2.size()>msg.MAXCHARACTERS)
 	{
-		vsc_send_user_feedback_string(vscInterface, 90, string.c_str());
-		vsc_send_user_feedback_string(vscInterface, 91,"");
-		vsc_send_user_feedback_string(vscInterface, 92,"");
-		vsc_send_user_feedback_string(vscInterface, 93,"");
+		ROS_WARN("Maximum characters limit reached for display row 2. Please enter upto 20 characters.");
 	}
+	if(msg.displayrow3.size()>msg.MAXCHARACTERS)
+	{
+		ROS_WARN("Maximum characters limit reached for display row 3. Please enter upto 20 characters.");
+	}
+	if(msg.displayrow4.size()>msg.MAXCHARACTERS)
+	{
+		ROS_WARN("Maximum characters limit reached for display row 4. Please enter upto 20 characters.");
+		return;
+	}
+	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, msg.displayrow1.c_str());
+	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg.displayrow2.c_str());
+	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg.displayrow3.c_str());
+	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg.displayrow4.c_str());
 }
 
 void VscProcess::receivedDisplayOffCommand(const std_msgs::String::ConstPtr& msg)
 {
-	vsc_send_user_feedback(vscInterface, 99,0);
+	vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_STANDARD);
 }
 
 bool VscProcess::EmergencyStop(EmergencyStop::Request  &req, EmergencyStop::Response &res )
