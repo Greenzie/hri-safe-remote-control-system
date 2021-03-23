@@ -19,7 +19,7 @@
  * ROS Includes
  */
 #include "ros/ros.h"
-#include "hri_safety_sense/EmergencyStop.h"
+#include <hri_safety_sense/EmergencyStop.h>
 #include "hri_safety_sense/KeyValue.h"
 #include "hri_safety_sense/KeyString.h"
 #include <std_msgs/Bool.h>
@@ -64,6 +64,7 @@ namespace hri_safety_sense {
 		  void receivedVibration(const std_msgs::Bool msg);
 		  void receivedDisplayOnCommand(const hri_safety_sense::SrcDisplay& msg);
 		  void receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg);
+		  void checkCharacterLimit(const hri_safety_sense::SrcDisplay& msg);
 
 	   private:
 
@@ -80,9 +81,9 @@ namespace hri_safety_sense {
 		  ros::Timer 	  		mainLoopTimer;
 		  ros::ServiceServer    estopServ, keyValueServ, keyStringServ;
 		  ros::Publisher		estopPub;
-		  ros::Subscriber 		vibrate_src_Sub;
-		  ros::Subscriber 		display_src_on_Sub;
-		  ros::Subscriber 		display_src_off_Sub;
+		  ros::Subscriber 		vibratesrcSub;
+		  ros::Subscriber 		displaySrcOnSub;
+		  ros::Subscriber 		displaySrcOffSub;
 		  ros::Time 			lastDataRx, lastTxTime;
 
 		  // Message Handlers

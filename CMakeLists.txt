@@ -47,6 +47,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 add_dependencies(${PROJECT_NAME}
         ${catkin_EXPORTED_TARGETS}
+        hri_safety_sense_generate_messages_cpp
 )
 
 catkin_package(

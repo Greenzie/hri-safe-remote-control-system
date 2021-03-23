@@ -85,9 +85,9 @@ VscProcess::VscProcess() :
 	// Publish Emergency Stop Status
 	estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
 
-	vibrate_src_Sub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
-	display_src_on_Sub = rosNode.subscribe("/src_display_mode_on", 1, &VscProcess::receivedDisplayOnCommand, this);
-	display_src_off_Sub = rosNode.subscribe("/src_display_mode_off", 1, &VscProcess::receivedDisplayOffCommand, this);
+	vibratesrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
+	displaySrcOnSub = rosNode.subscribe("/src_display_mode_on", 1, &VscProcess::receivedDisplayOnCommand, this);
+	displaySrcOffSub = rosNode.subscribe("/src_display_mode_off", 1, &VscProcess::receivedDisplayOffCommand, this);
 
 	// Main Loop Timer Callback
 	mainLoopTimer = rosNode.createTimer(ros::Duration(1.0/VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
@@ -116,24 +116,8 @@ void VscProcess::receivedVibration(const std_msgs::Bool msg)
 	}
 }
 
-void VscProcess::receivedDisplayOnCommand(const hri_safety_sense::SrcDisplay& msg)
-{	
-	// Save the first message we receive as the previous message
-	static bool msg_received = false;
-	if (!msg_received)
-	{
-		prev_msg_ = msg;
-		msg_received = true;
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, msg.displayrow1.c_str());
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg.displayrow2.c_str());
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg.displayrow3.c_str());
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg.displayrow4.c_str());
-		return;
-	}
-
-	// Turn on custom display mode
-	vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
-
+void VscProcess::checkCharacterLimit(const hri_safety_sense::SrcDisplay& msg)
+{
 	// Check if display message is above MAXCHARACTERS for a row in SRC display
 	if(msg.displayrow1.size() > msg.MAXCHARACTERS)
 	{
@@ -151,7 +135,35 @@ void VscProcess::receivedDisplayOnCommand(const hri_safety_sense::SrcDisplay& ms
 	{
 		ROS_WARN("Maximum characters limit reached for display row 4. Please enter upto 20 characters.");
 	}
-	
+}
+
+void VscProcess::receivedDisplayOnCommand(const hri_safety_sense::SrcDisplay& msg)
+{	
+	// Save the first message we receive as the previous message
+	static bool msg_received = false;
+
+	// Turn on custom display mode
+	vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
+
+	if (!msg_received)
+	{
+		prev_msg_ = msg;
+		msg_received = true;
+
+		// Checks if the display messages are below the MAXCHARACTERS limit
+		checkCharacterLimit(prev_msg_);
+
+		// Update Display messages
+		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, msg.displayrow1.c_str());
+		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg.displayrow2.c_str());
+		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg.displayrow3.c_str());
+		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg.displayrow4.c_str());
+		return;
+	}
+
+	// Checks if the display messages are below the MAXCHARACTERS limit
+	checkCharacterLimit(msg);
+
 	// Only send a display message if it is different from the previous message
 	if(msg.displayrow1 != prev_msg_.displayrow1)
 	{
@@ -175,8 +187,18 @@ void VscProcess::receivedDisplayOnCommand(const hri_safety_sense::SrcDisplay& ms
 }
 
 void VscProcess::receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg)
-{
+{	
+	hri_safety_sense::SrcDisplay clear_msg;
+	clear_msg.displayrow1 = clear_msg.displayrow2 = clear_msg.displayrow3 = clear_msg.displayrow4 = "";
+	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, clear_msg.displayrow1.c_str());
+	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, clear_msg.displayrow2.c_str());
+	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, clear_msg.displayrow3.c_str());
+	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, clear_msg.displayrow4.c_str());
 	vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_STANDARD);
+
+	// Save the clear message as previous
+	prev_msg_ = clear_msg;
+
 }
 
 bool VscProcess::EmergencyStop(EmergencyStop::Request  &req, EmergencyStop::Response &res )
