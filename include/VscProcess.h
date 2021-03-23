@@ -19,7 +19,7 @@
  * ROS Includes
  */
 #include "ros/ros.h"
-#include <hri_safety_sense/EmergencyStop.h>
+#include "hri_safety_sense/EmergencyStop.h"
 #include "hri_safety_sense/KeyValue.h"
 #include "hri_safety_sense/KeyString.h"
 #include <std_msgs/Bool.h>
