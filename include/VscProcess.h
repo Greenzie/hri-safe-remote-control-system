@@ -19,12 +19,12 @@
  * ROS Includes
  */
 #include "ros/ros.h"
-#include "hri_safety_sense/EmergencyStop.h"
-#include "hri_safety_sense/KeyValue.h"
-#include "hri_safety_sense/KeyString.h"
+#include "hri_safe_remote_control_system/EmergencyStop.h"
+#include "hri_safe_remote_control_system/KeyValue.h"
+#include "hri_safe_remote_control_system/KeyString.h"
 #include <std_msgs/Bool.h>
 #include <std_msgs/Empty.h>
-#include <hri_safety_sense/SrcDisplay.h>
+#include <hri_safe_remote_control_system/SrcDisplay.h>
 
 
 /**
@@ -34,7 +34,7 @@
 #include "VehicleMessages.h"
 #include "VehicleInterface.h"
 
-namespace hri_safety_sense {
+namespace hri_safe_remote_control_system {
 
 	// Diagnostics
 	struct ErrorCounterType {
@@ -62,15 +62,15 @@ namespace hri_safety_sense {
 		  bool KeyString(KeyString::Request &req, KeyString::Response &res);
 
 		  void receivedVibration(const std_msgs::Bool msg);
-		  void receivedDisplayOnCommand(const hri_safety_sense::SrcDisplay& msg);
+		  void receivedDisplayOnCommand(const hri_safe_remote_control_system::SrcDisplay& msg);
 		  void receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg);
-		  void checkCharacterLimit(const hri_safety_sense::SrcDisplay& msg);
+		  void checkCharacterLimit(const hri_safe_remote_control_system::SrcDisplay& msg);
 
 	   private:
 
 		  void readFromVehicle();
 		  int handleHeartbeatMsg(VscMsgType& recvMsg);
-		  hri_safety_sense::SrcDisplay prev_msg_;
+		  hri_safe_remote_control_system::SrcDisplay prev_msg_;
 
 		  // Local State
 		  uint32_t 				myEStopState;

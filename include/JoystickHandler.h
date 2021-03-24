@@ -23,7 +23,7 @@
 #include "VehicleMessages.h"
 #include "MsgHandler.h"
 
-namespace hri_safety_sense {
+namespace hri_safe_remote_control_system {
 
 	/**
 	 *

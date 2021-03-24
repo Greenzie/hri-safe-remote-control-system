@@ -36,7 +36,7 @@
 #include <VehicleInterface.h>
 #include <VehicleMessages.h>
 
-using namespace hri_safety_sense;
+using namespace hri_safe_remote_control_system;
 
 VscProcess::VscProcess() :
 	myEStopState(0)
@@ -116,7 +116,7 @@ void VscProcess::receivedVibration(const std_msgs::Bool msg)
 	}
 }
 
-void VscProcess::checkCharacterLimit(const hri_safety_sense::SrcDisplay& msg)
+void VscProcess::checkCharacterLimit(const hri_safe_remote_control_system::SrcDisplay& msg)
 {
 	// Check if display message is above MAXCHARACTERS for a row in SRC display
 	if(msg.displayrow1.size() > msg.MAXCHARACTERS)
@@ -137,7 +137,7 @@ void VscProcess::checkCharacterLimit(const hri_safety_sense::SrcDisplay& msg)
 	}
 }
 
-void VscProcess::receivedDisplayOnCommand(const hri_safety_sense::SrcDisplay& msg)
+void VscProcess::receivedDisplayOnCommand(const hri_safe_remote_control_system::SrcDisplay& msg)
 {	
 	// Save the first message we receive as the previous message
 	static bool msg_received = false;
@@ -188,7 +188,7 @@ void VscProcess::receivedDisplayOnCommand(const hri_safety_sense::SrcDisplay& ms
 
 void VscProcess::receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg)
 {	
-	hri_safety_sense::SrcDisplay clear_msg;
+	hri_safe_remote_control_system::SrcDisplay clear_msg;
 	clear_msg.displayrow1 = clear_msg.displayrow2 = clear_msg.displayrow3 = clear_msg.displayrow4 = "";
 	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, clear_msg.displayrow1.c_str());
 	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, clear_msg.displayrow2.c_str());

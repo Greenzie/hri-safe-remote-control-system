@@ -21,7 +21,7 @@
 #include <VehicleMessages.h>
 #include <JoystickHandler.h>
 
-using namespace hri_safety_sense;
+using namespace hri_safe_remote_control_system;
 
 JoystickHandler::JoystickHandler()
 {
