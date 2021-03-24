@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>hri_safety_sense</name>
+  <name>hri_safe_remote_control_system</name>
   <version>0.1.5</version>
   <description>HRI Library for Serial Communication in ROS</description>
 

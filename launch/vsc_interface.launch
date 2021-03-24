@@ -5,10 +5,11 @@
     <group if="$(arg vsc_interface_enable)">
       <!-- Start a serial interface to vsc on 'safety_port' -->
         <node name="vsc_serial_interface"
-              pkg="hri_safety_sense"
+              pkg="hri_safe_remote_control_system"
               type="safe_remote_control"
               respawn="true">
           <param name="port" value="$(arg safety_port)"/>
+          <param name="reconfigureJoy" type="bool" value="false"/>
         </node>
     </group>
 </launch>

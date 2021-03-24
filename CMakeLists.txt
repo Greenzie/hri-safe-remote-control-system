@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(hri_safety_sense)
+project(hri_safe_remote_control_system)
 
 find_package(catkin REQUIRED
         roscpp
@@ -47,12 +47,12 @@ target_link_libraries(${PROJECT_NAME}
 )
 add_dependencies(${PROJECT_NAME}
         ${catkin_EXPORTED_TARGETS}
-        hri_safety_sense_generate_messages_cpp
+        hri_safe_remote_control_system_generate_messages_cpp
 )
 
 catkin_package(
         INCLUDE_DIRS include
-        LIBRARIES hri_safety_sense
+        LIBRARIES hri_safe_remote_control_system
         CATKIN_DEPENDS
             roscpp
             std_msgs

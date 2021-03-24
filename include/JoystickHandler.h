@@ -42,6 +42,7 @@ namespace hri_safety_sense {
 
 		  ros::NodeHandle 		rosNode;
 		  ros::Publisher 		rawLeftPub, rawRightPub;
+		  bool 					reconfigureJoy{false};
 	};
 
 }

@@ -27,6 +27,9 @@ JoystickHandler::JoystickHandler()
 {
 	// Joystick Pub
 	rawLeftPub = rosNode.advertise<sensor_msgs::Joy>("/joy", 10);
+
+	// Boolean param to check if we need to reconfigure /joy messages
+	ros::param::get("~reconfigureJoy",reconfigureJoy);
 }
 
 JoystickHandler::~JoystickHandler()
@@ -77,14 +80,45 @@ uint32_t JoystickHandler::handleNewMsg(const VscMsgType &incomingMsg)
 		sendLeftMsg.axes.push_back((float)getStickValue(joyMsg->leftY));
 		sendLeftMsg.axes.push_back((float)getStickValue(joyMsg->leftZ));
 
-		sendLeftMsg.buttons.push_back(getButtonValue(joyMsg->leftSwitch.home));
-		sendLeftMsg.buttons.push_back(getButtonValue(joyMsg->leftSwitch.first));
-		sendLeftMsg.buttons.push_back(getButtonValue(joyMsg->leftSwitch.second));
-		sendLeftMsg.buttons.push_back(getButtonValue(joyMsg->leftSwitch.third));
-
 		sendLeftMsg.axes.push_back((float)getStickValue(joyMsg->rightX));
 		sendLeftMsg.axes.push_back((float)getStickValue(joyMsg->rightY));
 		sendLeftMsg.axes.push_back((float)getStickValue(joyMsg->rightZ));
+
+		if(reconfigureJoy)
+		{
+			if(joyMsg->leftSwitch.first == 1)
+			{
+				sendLeftMsg.axes.push_back(-(float)getButtonValue(joyMsg->leftSwitch.first));
+			}
+			if(joyMsg->leftSwitch.third == 1)
+			{
+				sendLeftMsg.axes.push_back((float)getButtonValue(joyMsg->leftSwitch.third));
+			}
+			if(joyMsg->leftSwitch.first == 0 && joyMsg->leftSwitch.third == 0)
+			{
+				sendLeftMsg.axes.push_back(0);
+			}
+
+			if(joyMsg->leftSwitch.home == 1)
+			{
+				sendLeftMsg.axes.push_back(-(float)getButtonValue(joyMsg->leftSwitch.home));
+			}
+			if(joyMsg->leftSwitch.second == 1)
+			{
+				sendLeftMsg.axes.push_back((float)getButtonValue(joyMsg->leftSwitch.second));
+			}
+			if(joyMsg->leftSwitch.home == 0 && joyMsg->leftSwitch.second == 0)
+			{
+				sendLeftMsg.axes.push_back(0);
+			}
+		}
+		else
+		{
+			sendLeftMsg.buttons.push_back(getButtonValue(joyMsg->leftSwitch.home));
+			sendLeftMsg.buttons.push_back(getButtonValue(joyMsg->leftSwitch.first));
+			sendLeftMsg.buttons.push_back(getButtonValue(joyMsg->leftSwitch.second));
+			sendLeftMsg.buttons.push_back(getButtonValue(joyMsg->leftSwitch.third));
+		}
 
 		sendLeftMsg.buttons.push_back(getButtonValue(joyMsg->rightSwitch.home));
 		sendLeftMsg.buttons.push_back(getButtonValue(joyMsg->rightSwitch.first));
