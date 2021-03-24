@@ -29,7 +29,7 @@ JoystickHandler::JoystickHandler()
 	rawLeftPub = rosNode.advertise<sensor_msgs::Joy>("/joy", 10);
 
 	// Boolean param to check if we need to reconfigure /joy messages
-	ros::param::get("~reconfigureJoy",reconfigureJoy);
+	ros::param::get("~useArrowsAsAxes",useArrowsAsAxes);
 }
 
 JoystickHandler::~JoystickHandler()
@@ -84,7 +84,7 @@ uint32_t JoystickHandler::handleNewMsg(const VscMsgType &incomingMsg)
 		sendLeftMsg.axes.push_back((float)getStickValue(joyMsg->rightY));
 		sendLeftMsg.axes.push_back((float)getStickValue(joyMsg->rightZ));
 
-		if(reconfigureJoy)
+		if(useArrowsAsAxes)
 		{
 			if(joyMsg->leftSwitch.first == 1)
 			{

@@ -9,7 +9,7 @@
               type="safe_remote_control"
               respawn="true">
           <param name="port" value="$(arg safety_port)"/>
-          <param name="reconfigureJoy" type="bool" value="false"/>
+          <param name="useArrowsAsAxes" type="bool" value="false"/>
         </node>
     </group>
 </launch>
