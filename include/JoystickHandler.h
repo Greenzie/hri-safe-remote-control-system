@@ -42,7 +42,7 @@ namespace hri_safe_remote_control_system {
 
 		  ros::NodeHandle 		rosNode;
 		  ros::Publisher 		rawLeftPub, rawRightPub;
-		  bool 					useArrowsAsAxes{false};
+		  bool 				useArrowsAsAxes{false};
 	};
 
 }
