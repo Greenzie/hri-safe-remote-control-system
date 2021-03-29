@@ -85,7 +85,7 @@ VscProcess::VscProcess() :
 	// Publish Emergency Stop Status
 	estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
 
-	vibratesrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
+	vibrateSrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
 	displaySrcOnSub = rosNode.subscribe("/src_display_mode_on", 1, &VscProcess::receivedDisplayOnCommand, this);
 	displaySrcOffSub = rosNode.subscribe("/src_display_mode_off", 1, &VscProcess::receivedDisplayOffCommand, this);
 

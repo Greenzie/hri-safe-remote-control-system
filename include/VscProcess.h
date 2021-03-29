@@ -81,7 +81,7 @@ namespace hri_safe_remote_control_system {
 		  ros::Timer 	  		mainLoopTimer;
 		  ros::ServiceServer    estopServ, keyValueServ, keyStringServ;
 		  ros::Publisher		estopPub;
-		  ros::Subscriber 		vibratesrcSub;
+		  ros::Subscriber 		vibrateSrcSub;
 		  ros::Subscriber 		displaySrcOnSub;
 		  ros::Subscriber 		displaySrcOffSub;
 		  ros::Time 			lastDataRx, lastTxTime;
