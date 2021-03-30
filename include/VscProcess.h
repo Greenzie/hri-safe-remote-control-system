@@ -19,9 +19,13 @@
  * ROS Includes
  */
 #include "ros/ros.h"
-#include "hri_safety_sense/EmergencyStop.h"
-#include "hri_safety_sense/KeyValue.h"
-#include "hri_safety_sense/KeyString.h"
+#include "hri_safe_remote_control_system/EmergencyStop.h"
+#include "hri_safe_remote_control_system/KeyValue.h"
+#include "hri_safe_remote_control_system/KeyString.h"
+#include <std_msgs/Bool.h>
+#include <std_msgs/Empty.h>
+#include <hri_safe_remote_control_system/SrcDisplay.h>
+
 
 /**
  * HRI_COMMON Includes
@@ -30,7 +34,7 @@
 #include "VehicleMessages.h"
 #include "VehicleInterface.h"
 
-namespace hri_safety_sense {
+namespace hri_safe_remote_control_system {
 
 	// Diagnostics
 	struct ErrorCounterType {
@@ -57,10 +61,16 @@ namespace hri_safety_sense {
 		  bool KeyValue(KeyValue::Request &req, KeyValue::Response &res);
 		  bool KeyString(KeyString::Request &req, KeyString::Response &res);
 
+		  void receivedVibration(const std_msgs::Bool msg);
+		  void receivedDisplayOnCommand(const hri_safe_remote_control_system::SrcDisplay& msg);
+		  void receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg);
+		  void checkCharacterLimit(const hri_safe_remote_control_system::SrcDisplay& msg);
+
 	   private:
 
 		  void readFromVehicle();
 		  int handleHeartbeatMsg(VscMsgType& recvMsg);
+		  hri_safe_remote_control_system::SrcDisplay prev_msg_;
 
 		  // Local State
 		  uint32_t 				myEStopState;
@@ -71,6 +81,9 @@ namespace hri_safety_sense {
 		  ros::Timer 	  		mainLoopTimer;
 		  ros::ServiceServer    estopServ, keyValueServ, keyStringServ;
 		  ros::Publisher		estopPub;
+		  ros::Subscriber 		vibrateSrcSub;
+		  ros::Subscriber 		displaySrcOnSub;
+		  ros::Subscriber 		displaySrcOffSub;
 		  ros::Time 			lastDataRx, lastTxTime;
 
 		  // Message Handlers

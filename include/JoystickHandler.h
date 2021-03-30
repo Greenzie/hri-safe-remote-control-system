@@ -23,7 +23,7 @@
 #include "VehicleMessages.h"
 #include "MsgHandler.h"
 
-namespace hri_safety_sense {
+namespace hri_safe_remote_control_system {
 
 	/**
 	 *
@@ -42,6 +42,7 @@ namespace hri_safety_sense {
 
 		  ros::NodeHandle 		rosNode;
 		  ros::Publisher 		rawLeftPub, rawRightPub;
+		  bool 				useArrowsAsAxes{false};
 	};
 
 }

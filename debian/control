@@ -1,0 +1,12 @@
+Source: ros-melodic-hri-safety-sense
+Section: misc
+Priority: optional
+Maintainer: Jackson Stanhope <js@greenzie.co>
+Build-Depends: debhelper (>= 9.0.0), ros-melodic-catkin, ros-melodic-genmsg, ros-melodic-message-generation, ros-melodic-message-runtime, ros-melodic-roscpp, ros-melodic-sensor-msgs, ros-melodic-std-msgs
+Homepage: 
+Standards-Version: 3.9.2
+
+Package: ros-melodic-hri-safety-sense
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-melodic-genmsg, ros-melodic-message-runtime, ros-melodic-roscpp, ros-melodic-sensor-msgs, ros-melodic-std-msgs
+Description: HRI Library for Serial Communication in ROS

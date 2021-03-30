@@ -12,30 +12,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __MSG_HANDLER_INCLUDED__
-#define __MSG_HANDLER_INCLUDED__
-
-/**
- * Includes
- */
 #include "ros/ros.h"
-#include "VehicleMessages.h"
+#include "VscProcess.h"
 
-namespace hri_safety_sense {
+hri_safe_remote_control_system::VscProcess *VSCInterface;
 
 /**
- *
+ * VSC Vehicle Interface
  */
-class MsgHandler {
-   public:
-	  virtual ~MsgHandler() {};
+int main(int argc, char **argv) {
+	ros::init(argc, argv, "VscProcess");
 
-	  virtual uint32_t handleNewMsg(const VscMsgType &incomingMsg) = 0;
+	// Create vehicle interface
+	VSCInterface = new hri_safe_remote_control_system::VscProcess();
 
-   private:
+	// Allow ROS to handle timing and callbacks
+	ros::spin();
 
-};
+	// Application ending
+	delete VSCInterface;
 
+	return 0;
 }
 
-#endif
+
