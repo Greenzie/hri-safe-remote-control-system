@@ -1,3 +1,9 @@
+ros-melodic-hri-safe-remote-control-system (0.2.0-bionic2) bionic; urgency=medium
+
+  * Fixed CMakeLists.txt to install all the necessary targets
+
+ -- David Jensen <david@greenzie.com>  Thu, 01 Apr 2021 11:19:37 -0400
+
 ros-melodic-hri-safe-remote-control-system (0.2.0-bionic1) bionic; urgency=medium
 
   * Initial debianization and renaming to hri-safe-remote-control-system

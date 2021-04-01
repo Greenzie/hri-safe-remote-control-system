@@ -61,10 +61,25 @@ catkin_package(
             message_runtime
 )
 
-add_executable(safe_remote_control src/main.cpp)
+add_executable(safe_remote_control
+        src/main.cpp
+)
+
 target_link_libraries(safe_remote_control
         ${PROJECT_NAME}
         ${catkin_LIBRARIES}
 )
 
- 
+## Mark executables and/or libraries for installation
+install(TARGETS safe_remote_control
+                ${PROJECT_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# Mark files for installation
+install(DIRECTORY launch/
+ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+)
+
