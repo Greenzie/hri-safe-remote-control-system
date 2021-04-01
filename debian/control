@@ -1,4 +1,4 @@
-Source: ros-melodic-hri-safety-sense
+Source: ros-melodic-hri-safe-remote-control-system
 Section: misc
 Priority: optional
 Maintainer: Jackson Stanhope <js@greenzie.co>
@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 9.0.0), ros-melodic-catkin, ros-melodic-genmsg, ros
 Homepage: 
 Standards-Version: 3.9.2
 
-Package: ros-melodic-hri-safety-sense
+Package: ros-melodic-hri-safe-remote-control-system
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ros-melodic-genmsg, ros-melodic-message-runtime, ros-melodic-roscpp, ros-melodic-sensor-msgs, ros-melodic-std-msgs
 Description: HRI Library for Serial Communication in ROS
