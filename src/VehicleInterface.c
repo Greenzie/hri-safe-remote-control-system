@@ -306,7 +306,8 @@ void vsc_send_user_feedback(VscInterfaceType* vscInterface, uint8_t key, int32_t
 
 	/* Send Message */
 	if (vsc_send_msg(vscInterface, &feedbackMsg) < 0) {
-		fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+    // Error print commented out due to spam
+	  //fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
 	}
 }
 
@@ -334,7 +335,8 @@ void vsc_send_user_feedback_string(VscInterfaceType* vscInterface, uint8_t key, 
 
 	/* Send Message */
 	if (vsc_send_msg(vscInterface, &feedbackMsg) < 0) {
-		fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+		// Error print commented out due to spam
+	  //fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
 	}
 }
 
@@ -359,7 +361,8 @@ void vsc_send_heartbeat(VscInterfaceType* vscInterface, uint8_t EStopStatus) {
 
 	/* Send Message */
 	if (vsc_send_msg(vscInterface, &heartbeatMsg) < 0) {
-		fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+    // Error print commented out due to spam
+	  //fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
 	}
 
 }
