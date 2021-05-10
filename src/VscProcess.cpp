@@ -255,7 +255,7 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
 		estopPub.publish(estopValue);
 
 		if(msgPtr->EStopStatus > 0) {
-			ROS_WARN("Received ESTOP from the vehicle!!! 0x%x",msgPtr->EStopStatus);
+			ROS_WARN_THROTTLE(5.0, "Received ESTOP from the vehicle!!! 0x%x",msgPtr->EStopStatus);
 		}
 
 	} else {
