@@ -142,51 +142,23 @@ void VscProcess::checkCharacterLimit(const hri_safe_remote_control_system::SrcDi
 }
 
 void VscProcess::receivedDisplayOnCommand(const hri_safe_remote_control_system::SrcDisplay& msg)
-{	
-	// Save the first message we receive as the previous message
-	static bool msg_received = false;
-
+{
 	// Turn on custom display mode
 	vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
 
-	if (!msg_received)
-	{
-		prev_msg_ = msg;
-		msg_received = true;
+  // Checks if the display messages are below the MAXCHARACTERS limit
+  checkCharacterLimit(msg);
 
-		// Checks if the display messages are below the MAXCHARACTERS limit
-		checkCharacterLimit(prev_msg_);
-
-		// Update Display messages
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, msg.displayrow1.c_str());
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg.displayrow2.c_str());
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg.displayrow3.c_str());
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg.displayrow4.c_str());
-		return;
-	}
-
-	// Checks if the display messages are below the MAXCHARACTERS limit
-	checkCharacterLimit(msg);
-
-	// Only send a display message if it is different from the previous message
-
+  // Update Display messages
   vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, msg.displayrow1.c_str());
-
-
   vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg.displayrow2.c_str());
-
-
   vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg.displayrow3.c_str());
-
   vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg.displayrow4.c_str());
 
-
-	// Save the previous message
-	prev_msg_ = msg;
 }
 
 void VscProcess::receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg)
-{	
+{
 	hri_safe_remote_control_system::SrcDisplay clear_msg;
 	clear_msg.displayrow1 = clear_msg.displayrow2 = clear_msg.displayrow3 = clear_msg.displayrow4 = "";
 	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, clear_msg.displayrow1.c_str());
@@ -194,9 +166,6 @@ void VscProcess::receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg)
 	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, clear_msg.displayrow3.c_str());
 	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, clear_msg.displayrow4.c_str());
 	vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_STANDARD);
-
-	// Save the clear message as previous
-	prev_msg_ = clear_msg;
 
 }
 
