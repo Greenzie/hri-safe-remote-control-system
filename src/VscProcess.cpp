@@ -101,7 +101,11 @@ VscProcess::VscProcess() :
 
 VscProcess::~VscProcess()
 {
-    // Destroy vscInterface
+  // before destroying, reset the SRC display for next time
+  std_msgs::EmptyConstPtr clear_msg;
+  receivedDisplayOffCommand(clear_msg);
+
+  // Destroy vscInterface
 	vsc_cleanup(vscInterface);
 
 	if(joystickHandler) delete joystickHandler;
