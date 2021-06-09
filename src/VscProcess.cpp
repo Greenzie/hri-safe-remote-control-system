@@ -169,22 +169,17 @@ void VscProcess::receivedDisplayOnCommand(const hri_safe_remote_control_system::
 	checkCharacterLimit(msg);
 
 	// Only send a display message if it is different from the previous message
-	if(msg.displayrow1 != prev_msg_.displayrow1)
-	{
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, msg.displayrow1.c_str());
-	}
-	if(msg.displayrow2 != prev_msg_.displayrow2)
-	{
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg.displayrow2.c_str());
-	}
-	if(msg.displayrow3 != prev_msg_.displayrow3)
-	{
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg.displayrow3.c_str());
-	}
-	if(msg.displayrow4 != prev_msg_.displayrow4)
-	{
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg.displayrow4.c_str());
-	}
+
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, msg.displayrow1.c_str());
+
+
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg.displayrow2.c_str());
+
+
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg.displayrow3.c_str());
+
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg.displayrow4.c_str());
+
 
 	// Save the previous message
 	prev_msg_ = msg;
