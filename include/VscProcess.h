@@ -70,7 +70,6 @@ namespace hri_safe_remote_control_system {
 
 		  void readFromVehicle();
 		  int handleHeartbeatMsg(VscMsgType& recvMsg);
-		  hri_safe_remote_control_system::SrcDisplay prev_msg_;
 
 		  // Local State
 		  uint32_t 				myEStopState;

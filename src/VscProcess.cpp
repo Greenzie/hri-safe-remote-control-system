@@ -266,7 +266,6 @@ void VscProcess::readFromVehicle()
 			break;
 		default:
 			errorCounts.invalidRxMsgCount++;
-			ROS_ERROR("Receive Error.  Invalid MsgType (0x%02X)",recvMsg.msg.msgType);
 			break;
 		}
 	}
