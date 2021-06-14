@@ -42,22 +42,23 @@ VscProcess::VscProcess() :
 	myEStopState(0)
 {
 	ros::NodeHandle nh("~");
-	std::string serialPort = "/dev/ttyACM0";
-	if(nh.getParam("port", serialPort)) {
-		ROS_INFO("Serial Port updated to:  %s",serialPort.c_str());
+
+	if(nh.getParam("port", serial_port_)) {
+		ROS_INFO("Serial Port updated to:  %s",serial_port_.c_str());
 	}
 
-	int  serialSpeed = 115200;
-	if(nh.getParam("serial_speed", serialSpeed)) {
-		ROS_INFO("Serial Port Speed updated to:  %i",serialSpeed);
+	if(nh.getParam("serial_speed", serial_speed_)) {
+		ROS_INFO("Serial Port Speed updated to:  %i",serial_speed_);
 	}
+
+
 
 	/* Open VSC Interface */
-	vscInterface = vsc_initialize(serialPort.c_str(),serialSpeed);
+	vscInterface = vsc_initialize(serial_port_.c_str(),serial_speed_);
 	if (vscInterface == NULL) {
-		ROS_FATAL("Cannot open serial port! (%s, %i)",serialPort.c_str(),serialSpeed);
+		ROS_FATAL("Cannot open serial port! (%s, %i)",serial_port_.c_str(),serial_speed_);
 	} else {
-		ROS_INFO("Connected to VSC on %s : %i",serialPort.c_str(),serialSpeed);
+		ROS_INFO("Connected to VSC on %s : %i",serial_port_.c_str(),serial_speed_);
 	}
 
 	// Attempt to Set priority
@@ -88,6 +89,23 @@ VscProcess::VscProcess() :
 	vibrateSrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
 	displaySrcOnSub = rosNode.subscribe("/src_display_mode_on", 1, &VscProcess::receivedDisplayOnCommand, this);
 	displaySrcOffSub = rosNode.subscribe("/src_display_mode_off", 1, &VscProcess::receivedDisplayOffCommand, this);
+
+  // Set up Alerts
+  // We use the standard NodeHandle here so that we don't need to worry about multithreading
+  alert_helper_ptr_ = std::make_shared<greenzie_common::monitor_tools::AlertHelper>(ros::this_node::getName(), rosNode);
+  alert_helper_ptr_->add(ALERT_CODE_VSC_DISCONNECTED,
+                         "No data received from VSC. Is it disconnected?",
+                         "Reconnect the VSC",
+                         "reconnect_vsc",
+                         greenzie_msgs::Alert::ERROR,
+                         1.0);
+
+  // Configure ActionServer
+  recovery_as_ptr_ = std::make_shared<actionlib::SimpleActionServer<greenzie_msgs::RecoveryAction>>(
+                  "reconnect_vsc",
+                  boost::bind(&VscProcess::recoveryExecute, this, _1),
+                  false);
+  recovery_as_ptr_->start();
 
 	// Main Loop Timer Callback
 	mainLoopTimer = rosNode.createTimer(ros::Duration(1.0/VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
@@ -305,9 +323,124 @@ void VscProcess::readFromVehicle()
 
 	// Log warning when no data is received
 	ros::Duration noDataDuration = ros::Time::now() - lastDataRx;
-	if(noDataDuration > ros::Duration(.25)) {
-		ROS_WARN_THROTTLE(.5, "No Data Received in %i.%09i seconds", noDataDuration.sec, noDataDuration.nsec );
-	}
+	data_timed_out_ = noDataDuration > ros::Duration(.25);
 
+  // Check for data received timing out
+  if (data_timed_out_)
+  {
+    std::ostringstream sts;
+    sts.precision(2);
+    sts << std::fixed;
+    sts << "No Data Received in " << noDataDuration.sec << "." << noDataDuration.nsec << " seconds";
+    alert_helper_ptr_->update(ALERT_CODE_VSC_DISCONNECTED, true, sts.str());
+  }
+  else
+  {
+    alert_helper_ptr_->update(ALERT_CODE_VSC_DISCONNECTED, false);
+  }
+
+}
+
+/**
+ * recoveryExecute()
+ *
+ * This method executes the Action to reconnect to the VSC
+ */
+void VscProcess::recoveryExecute(const greenzie_msgs::RecoveryGoalConstPtr& goal)
+{
+  ROS_INFO("*************************************************************");
+  ROS_INFO("%s, VSC recovery action is now executing!", ros::this_node::getName().c_str());
+  ROS_INFO("*************************************************************");
+
+  greenzie_msgs::RecoveryResult result{};
+
+  // Attempt to re-open the VSC interface
+
+
+  ros::Rate loop_rate(ros::Duration(1.0));
+  int i = 1;
+  int max_attempts = 10;
+  while (i <= max_attempts)
+  {
+    // Ensure that ROS is still okay
+    if (!ros::ok())
+    {
+      recovery_as_ptr_->setAborted(result);
+      return;
+    }
+
+    // Check if preempt has been requested for this action server
+    if (recovery_as_ptr_->isPreemptRequested())
+    {
+      ROS_INFO("VscProcess Recovery Action 'reconnect_vsc' has been preempted");
+      recovery_as_ptr_->setPreempted(result);
+      return;
+    }
+
+    ROS_INFO("Attempting to reconnect to the VSC...");
+    vscInterface = vsc_initialize(serial_port_.c_str(),serial_speed_);
+    if (vscInterface == NULL)
+    {
+      if (i == max_attempts)
+      {
+        ROS_FATAL("Cannot open serial port! (%s, %i)",serial_port_.c_str(),serial_speed_);
+        recovery_as_ptr_->setAborted(result);
+        return;
+      }
+    }
+    else
+    {
+      ROS_INFO("Connected to VSC on %s : %i",serial_port_.c_str(),serial_speed_);
+      break;
+    }
+
+    // Sleep until next execution cycle
+    i++;
+    loop_rate.sleep();
+  }
+
+  // Wait for data to return
+  i = 0;
+  while (i <= max_attempts)
+  {
+    // Ensure that ROS is still okay
+    if (!ros::ok())
+    {
+      recovery_as_ptr_->setAborted(result);
+      return;
+    }
+
+    // Check to see if data has returned yet
+    if (!data_timed_out_)
+    {
+      ROS_INFO("Alert is no longer active");
+      break;
+    }
+    else
+    {
+      ROS_INFO("Waiting on alert to clear (%d/%d)", i, max_attempts);
+    }
+
+    // Check if preempt has been requested for this action server
+    if (recovery_as_ptr_->isPreemptRequested())
+    {
+      ROS_INFO("VscProcess Recovery Action 'reconnect_vsc' has been preempted");
+      recovery_as_ptr_->setPreempted(result);
+      return;
+    }
+
+    // Sleep until next execution cycle
+    i++;
+    loop_rate.sleep();
+  }
+
+  if (data_timed_out_)
+  {
+    ROS_INFO("Waiting period has expired, but alert is still active. Aborting...");
+    recovery_as_ptr_->setAborted(result);
+    return;
+  }
+
+  recovery_as_ptr_->setSucceeded(result);
 }
 

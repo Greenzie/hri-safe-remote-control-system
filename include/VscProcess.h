@@ -19,12 +19,17 @@
  * ROS Includes
  */
 #include "ros/ros.h"
+#include <std_msgs/Bool.h>
+#include <std_msgs/Empty.h>
+#include <actionlib/server/simple_action_server.h>
+
 #include "hri_safe_remote_control_system/EmergencyStop.h"
 #include "hri_safe_remote_control_system/KeyValue.h"
 #include "hri_safe_remote_control_system/KeyString.h"
-#include <std_msgs/Bool.h>
-#include <std_msgs/Empty.h>
 #include <hri_safe_remote_control_system/SrcDisplay.h>
+
+#include <greenzie_common/monitor_tools/alert_helper.h>
+#include <greenzie_msgs/RecoveryAction.h>
 
 
 /**
@@ -56,7 +61,7 @@ namespace hri_safe_remote_control_system {
 		  // Main loop
 		  void processOneLoop(const ros::TimerEvent&);
 
-		  // ROS Callback's
+		  // ROS Callbacks
 		  bool EmergencyStop(EmergencyStop::Request &req, EmergencyStop::Response &res);
 		  bool KeyValue(KeyValue::Request &req, KeyValue::Response &res);
 		  bool KeyString(KeyString::Request &req, KeyString::Response &res);
@@ -70,7 +75,11 @@ namespace hri_safe_remote_control_system {
 
 		  void readFromVehicle();
 		  int handleHeartbeatMsg(VscMsgType& recvMsg);
+      void recoveryExecute(const greenzie_msgs::RecoveryGoalConstPtr& goal);
+
 		  hri_safe_remote_control_system::SrcDisplay prev_msg_;
+      std::string serial_port_ = "/dev/ttyACM0";
+      int serial_speed_ = 115200;
 
 		  // Local State
 		  uint32_t 				myEStopState;
@@ -85,6 +94,14 @@ namespace hri_safe_remote_control_system {
 		  ros::Subscriber 		displaySrcOnSub;
 		  ros::Subscriber 		displaySrcOffSub;
 		  ros::Time 			lastDataRx, lastTxTime;
+
+		  // Alerts and Recovery
+      std::shared_ptr<greenzie_common::monitor_tools::AlertHelper> alert_helper_ptr_;
+      std::shared_ptr<actionlib::SimpleActionServer<greenzie_msgs::RecoveryAction>> recovery_as_ptr_;
+      bool alerts_enabled_{ true };
+      bool data_timed_out_ { false };
+
+      const uint32_t ALERT_CODE_VSC_DISCONNECTED = 1;
 
 		  // Message Handlers
 		  MsgHandler			*joystickHandler;
