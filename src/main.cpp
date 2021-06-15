@@ -15,24 +15,23 @@
 #include "ros/ros.h"
 #include "VscProcess.h"
 
-hri_safe_remote_control_system::VscProcess *VSCInterface;
+hri_safe_remote_control_system::VscProcess* VSCInterface;
 
 /**
  * VSC Vehicle Interface
  */
-int main(int argc, char **argv) {
-	ros::init(argc, argv, "VscProcess");
+int main(int argc, char** argv)
+{
+  ros::init(argc, argv, "VscProcess");
 
-	// Create vehicle interface
-	VSCInterface = new hri_safe_remote_control_system::VscProcess();
+  // Create vehicle interface
+  VSCInterface = new hri_safe_remote_control_system::VscProcess();
 
-	// Allow ROS to handle timing and callbacks
-	ros::spin();
+  // Allow ROS to handle timing and callbacks
+  ros::spin();
 
-	// Application ending
-	delete VSCInterface;
+  // Application ending
+  delete VSCInterface;
 
-	return 0;
+  return 0;
 }
-
-
