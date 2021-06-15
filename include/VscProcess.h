@@ -26,7 +26,6 @@
 #include <std_msgs/Empty.h>
 #include <hri_safe_remote_control_system/SrcDisplay.h>
 
-
 /**
  * HRI_COMMON Includes
  */
@@ -34,66 +33,65 @@
 #include "VehicleMessages.h"
 #include "VehicleInterface.h"
 
-namespace hri_safe_remote_control_system {
+namespace hri_safe_remote_control_system
+{
+// Diagnostics
+struct ErrorCounterType
+{
+  uint32_t sendErrorCount;
+  uint32_t invalidRxMsgCount;
+};
 
-	// Diagnostics
-	struct ErrorCounterType {
-		uint32_t sendErrorCount;
-		uint32_t invalidRxMsgCount;
-	};
+/**
+ * Local Definitions
+ */
+const unsigned int VSC_INTERFACE_RATE = 50; /* 50 Hz */
+const unsigned int VSC_HEARTBEAT_RATE = 20; /* 20 Hz */
 
-	/**
-	 * Local Definitions
-	 */
-	const unsigned int VSC_INTERFACE_RATE = 50; /* 50 Hz */
-	const unsigned int VSC_HEARTBEAT_RATE = 20; /* 20 Hz */
+class VscProcess
+{
+public:
+  VscProcess();
+  ~VscProcess();
 
-	class VscProcess {
-	   public:
-		  VscProcess();
-		  ~VscProcess();
+  // Main loop
+  void processOneLoop(const ros::TimerEvent&);
 
-		  // Main loop
-		  void processOneLoop(const ros::TimerEvent&);
+  // ROS Callback's
+  bool EmergencyStop(EmergencyStop::Request& req, EmergencyStop::Response& res);
+  bool KeyValue(KeyValue::Request& req, KeyValue::Response& res);
+  bool KeyString(KeyString::Request& req, KeyString::Response& res);
 
-		  // ROS Callback's
-		  bool EmergencyStop(EmergencyStop::Request &req, EmergencyStop::Response &res);
-		  bool KeyValue(KeyValue::Request &req, KeyValue::Response &res);
-		  bool KeyString(KeyString::Request &req, KeyString::Response &res);
+  void receivedVibration(const std_msgs::Bool msg);
+  void receivedDisplayOnCommand(const hri_safe_remote_control_system::SrcDisplay& msg);
+  void receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg);
+  void checkCharacterLimit(const hri_safe_remote_control_system::SrcDisplay& msg);
 
-		  void receivedVibration(const std_msgs::Bool msg);
-		  void receivedDisplayOnCommand(const hri_safe_remote_control_system::SrcDisplay& msg);
-		  void receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg);
-		  void checkCharacterLimit(const hri_safe_remote_control_system::SrcDisplay& msg);
+private:
+  void readFromVehicle();
+  int handleHeartbeatMsg(VscMsgType& recvMsg);
 
-	   private:
+  // Local State
+  uint32_t myEStopState;
+  ErrorCounterType errorCounts;
 
-		  void readFromVehicle();
-		  int handleHeartbeatMsg(VscMsgType& recvMsg);
+  // ROS
+  ros::NodeHandle rosNode;
+  ros::Timer mainLoopTimer;
+  ros::ServiceServer estopServ, keyValueServ, keyStringServ;
+  ros::Publisher estopPub;
+  ros::Subscriber vibrateSrcSub;
+  ros::Subscriber displaySrcOnSub;
+  ros::Subscriber displaySrcOffSub;
+  ros::Time lastDataRx, lastTxTime;
 
-		  // Local State
-		  uint32_t 				myEStopState;
-		  ErrorCounterType 		errorCounts;
+  // Message Handlers
+  MsgHandler* joystickHandler;
 
-		  // ROS
-		  ros::NodeHandle 		rosNode;
-		  ros::Timer 	  		mainLoopTimer;
-		  ros::ServiceServer    estopServ, keyValueServ, keyStringServ;
-		  ros::Publisher		estopPub;
-		  ros::Subscriber 		vibrateSrcSub;
-		  ros::Subscriber 		displaySrcOnSub;
-		  ros::Subscriber 		displaySrcOffSub;
-		  ros::Time 			lastDataRx, lastTxTime;
+  /* File descriptor for VSC Interface */
+  VscInterfaceType* vscInterface;
+};
 
-		  // Message Handlers
-		  MsgHandler			*joystickHandler;
-
-		  /* File descriptor for VSC Interface */
-		  VscInterfaceType		*vscInterface;
-
-	};
-
-} // namespace
-
+}  // namespace hri_safe_remote_control_system
 
 #endif

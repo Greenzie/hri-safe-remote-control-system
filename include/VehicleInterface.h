@@ -26,13 +26,14 @@
 extern "C" {
 #endif
 
-#define SIZE_RECEIVE_BUFFER   1000
+#define SIZE_RECEIVE_BUFFER 1000
 
-typedef struct {
-	uint32_t front;
-	uint32_t back;
-	uint32_t fd;
-	uint8_t  recvbuffer[SIZE_RECEIVE_BUFFER];
+typedef struct
+{
+  uint32_t front;
+  uint32_t back;
+  uint32_t fd;
+  uint8_t recvbuffer[SIZE_RECEIVE_BUFFER];
 } VscInterfaceType;
 
 /**
@@ -44,7 +45,7 @@ typedef struct {
  * @param baud Baud rate of serial device to open.
  * @return VSC Interface Structure if successful or NULL on error
  */
-VscInterfaceType* vsc_initialize(const char *device, const unsigned int baud);
+VscInterfaceType* vsc_initialize(const char* device, const unsigned int baud);
 
 /**
  * Cleanup the VSC interface
@@ -75,7 +76,7 @@ int32_t vsc_get_fd(VscInterfaceType* vscInterface);
  * @param sendMsg Pointer to structer with message to send to VSC.
  * @return File Descriptor of serial interface
  */
-int32_t vsc_send_msg(VscInterfaceType* vscInterface, VscMsgType *sendMsg);
+int32_t vsc_send_msg(VscInterfaceType* vscInterface, VscMsgType* sendMsg);
 
 /**
  * Read next message from the VSC
@@ -86,7 +87,7 @@ int32_t vsc_send_msg(VscInterfaceType* vscInterface, VscMsgType *sendMsg);
  * @param[out] newMsg Pointer to structure that is filled with new message from buffer.
  * @return 1 if newMsg is populated or -1 if no new messages are available
  */
-int32_t vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg);
+int32_t vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType* newMsg);
 
 /**
  * Translate joystick value from structure into integer

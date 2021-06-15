@@ -21,21 +21,21 @@
 #include "ros/ros.h"
 #include "VehicleMessages.h"
 
-namespace hri_safe_remote_control_system {
-
+namespace hri_safe_remote_control_system
+{
 /**
  *
  */
-class MsgHandler {
-   public:
-	  virtual ~MsgHandler() {};
+class MsgHandler
+{
+public:
+  virtual ~MsgHandler(){};
 
-	  virtual uint32_t handleNewMsg(const VscMsgType &incomingMsg) = 0;
+  virtual uint32_t handleNewMsg(const VscMsgType& incomingMsg) = 0;
 
-   private:
-
+private:
 };
 
-}
+}  // namespace hri_safe_remote_control_system
 
 #endif
