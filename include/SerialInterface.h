@@ -35,7 +35,7 @@ extern "C" {
  * @param baud Baud rate of the serial port
  * @return fd success, -1 on error
  */
-int open_serial_interface(const char *device, const unsigned int baud);
+int open_serial_interface(const char* device, const unsigned int baud);
 
 /**
  * Close the connection with the current device
@@ -51,7 +51,7 @@ void close_serial_interface(int fd);
  * @param bytes The number of bytes to write from the buffer
  * @return number of bytes written on success, -1 on error
  */
-int write_to_serial(int fd, const void *buffer, const unsigned int bytes);
+int write_to_serial(int fd, const void* buffer, const unsigned int bytes);
 
 /**
  * Read bytes from serial port
@@ -60,12 +60,10 @@ int write_to_serial(int fd, const void *buffer, const unsigned int bytes);
  * @param bytes The number of bytes to read into the buffer
  * @return number of bytes read on success, -1 on error
  */
-int read_from_serial(int fd, void *buffer,unsigned int bytes);
+int read_from_serial(int fd, void* buffer, unsigned int bytes);
 
 #ifdef __cplusplus
 }
 #endif
 
-
 #endif
-
