@@ -38,409 +38,257 @@
 
 using namespace hri_safe_remote_control_system;
 
-VscProcess::VscProcess() :
-	myEStopState(0)
+VscProcess::VscProcess() : myEStopState(0)
 {
-	ros::NodeHandle nh("~");
+  ros::NodeHandle nh("~");
+  std::string serialPort = "/dev/ttyACM0";
+  if (nh.getParam("port", serialPort))
+  {
+    ROS_INFO("Serial Port updated to:  %s", serialPort.c_str());
+  }
 
-	if(nh.getParam("port", serial_port_)) {
-		ROS_INFO("Serial Port updated to:  %s",serial_port_.c_str());
-	}
+  int serialSpeed = 115200;
+  if (nh.getParam("serial_speed", serialSpeed))
+  {
+    ROS_INFO("Serial Port Speed updated to:  %i", serialSpeed);
+  }
 
-	if(nh.getParam("serial_speed", serial_speed_)) {
-		ROS_INFO("Serial Port Speed updated to:  %i",serial_speed_);
-	}
+  /* Open VSC Interface */
+  vscInterface = vsc_initialize(serialPort.c_str(), serialSpeed);
+  if (vscInterface == NULL)
+  {
+    ROS_FATAL("Cannot open serial port! (%s, %i)", serialPort.c_str(), serialSpeed);
+  }
+  else
+  {
+    ROS_INFO("Connected to VSC on %s : %i", serialPort.c_str(), serialSpeed);
+  }
 
+  // Attempt to Set priority
+  bool set_priority = false;
+  if (nh.getParam("set_priority", set_priority))
+  {
+    ROS_INFO("Set priority updated to:  %i", set_priority);
+  }
 
+  if (set_priority)
+  {
+    if (setpriority(PRIO_PROCESS, 0, -19) == -1)
+    {
+      ROS_ERROR("UNABLE TO SET PRIORITY OF PROCESS! (%i, %s)", errno, strerror(errno));
+    }
+  }
 
-	/* Open VSC Interface */
-	vscInterface = vsc_initialize(serial_port_.c_str(),serial_speed_);
-	if (vscInterface == NULL) {
-		ROS_FATAL("Cannot open serial port! (%s, %i)",serial_port_.c_str(),serial_speed_);
-	} else {
-		ROS_INFO("Connected to VSC on %s : %i",serial_port_.c_str(),serial_speed_);
-	}
+  // Create Message Handlers
+  joystickHandler = new JoystickHandler();
 
-	// Attempt to Set priority
-	bool  set_priority = false;
-	if(nh.getParam("set_priority", set_priority)) {
-		ROS_INFO("Set priority updated to:  %i",set_priority);
-	}
+  // EStop callback
+  estopServ = rosNode.advertiseService("safety/service/send_emergency_stop", &VscProcess::EmergencyStop, this);
 
-	if(set_priority) {
-		if(setpriority(PRIO_PROCESS, 0, -19) == -1) {
-			ROS_ERROR("UNABLE TO SET PRIORITY OF PROCESS! (%i, %s)",errno,strerror(errno));
-		}
-	}
+  // KeyValue callbacks
+  keyValueServ = rosNode.advertiseService("safety/service/key_value", &VscProcess::KeyValue, this);
+  keyStringServ = rosNode.advertiseService("safety/service/key_string", &VscProcess::KeyString, this);
 
-	// Create Message Handlers
-	joystickHandler = new JoystickHandler();
+  // Publish Emergency Stop Status
+  estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
 
-	// EStop callback
-	estopServ = rosNode.advertiseService("safety/service/send_emergency_stop", &VscProcess::EmergencyStop, this);
+  vibrateSrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
+  displaySrcOnSub = rosNode.subscribe("/src_display_mode_on", 1, &VscProcess::receivedDisplayOnCommand, this);
+  displaySrcOffSub = rosNode.subscribe("/src_display_mode_off", 1, &VscProcess::receivedDisplayOffCommand, this);
 
-	// KeyValue callbacks
-	keyValueServ = rosNode.advertiseService("safety/service/key_value", &VscProcess::KeyValue, this);
-	keyStringServ = rosNode.advertiseService("safety/service/key_string", &VscProcess::KeyString, this);
+  // Main Loop Timer Callback
+  mainLoopTimer = rosNode.createTimer(ros::Duration(1.0 / VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
 
-	// Publish Emergency Stop Status
-	estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
+  // Init last time to now
+  lastDataRx = ros::Time::now();
 
-	vibrateSrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
-	displaySrcOnSub = rosNode.subscribe("/src_display_mode_on", 1, &VscProcess::receivedDisplayOnCommand, this);
-	displaySrcOffSub = rosNode.subscribe("/src_display_mode_off", 1, &VscProcess::receivedDisplayOffCommand, this);
-
-  // Set up Alerts
-  // We use the standard NodeHandle here so that we don't need to worry about multithreading
-  alert_helper_ptr_ = std::make_shared<greenzie_common::monitor_tools::AlertHelper>(ros::this_node::getName(), rosNode);
-  alert_helper_ptr_->add(ALERT_CODE_VSC_DISCONNECTED,
-                         "No data received from VSC. Is it disconnected?",
-                         "Reconnect the VSC",
-                         "reconnect_vsc",
-                         greenzie_msgs::Alert::ERROR,
-                         1.0);
-
-  // Configure ActionServer
-  recovery_as_ptr_ = std::make_shared<actionlib::SimpleActionServer<greenzie_msgs::RecoveryAction>>(
-                  "reconnect_vsc",
-                  boost::bind(&VscProcess::recoveryExecute, this, _1),
-                  false);
-  recovery_as_ptr_->start();
-
-	// Main Loop Timer Callback
-	mainLoopTimer = rosNode.createTimer(ros::Duration(1.0/VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
-
-	// Init last time to now
-	lastDataRx = ros::Time::now();
-
-	// Clear all error counters
-	memset(&errorCounts, 0, sizeof(errorCounts));
+  // Clear all error counters
+  memset(&errorCounts, 0, sizeof(errorCounts));
 }
 
 VscProcess::~VscProcess()
 {
-    // Destroy vscInterface
-	vsc_cleanup(vscInterface);
+  // before destroying, reset the SRC display for next time
+  std_msgs::EmptyConstPtr clear_msg;
+  receivedDisplayOffCommand(clear_msg);
 
-	if(joystickHandler) delete joystickHandler;
+  // Destroy vscInterface
+  vsc_cleanup(vscInterface);
+
+  if (joystickHandler)
+  {
+    delete joystickHandler;
+  }
 }
 
 void VscProcess::receivedVibration(const std_msgs::Bool msg)
 {
-	bool received_msg = msg.data;
-	if (received_msg == true)
-	{
-		vsc_send_user_feedback(vscInterface, VSC_USER_BOTH_MOTOR_INTENSITY, MOTOR_CONTROL_INTENSITY_HIGH);
-	}
+  bool received_msg = msg.data;
+  if (received_msg == true)
+  {
+    vsc_send_user_feedback(vscInterface, VSC_USER_BOTH_MOTOR_INTENSITY, MOTOR_CONTROL_INTENSITY_HIGH);
+  }
 }
 
 void VscProcess::checkCharacterLimit(const hri_safe_remote_control_system::SrcDisplay& msg)
 {
-	// Check if display message is above MAXCHARACTERS for a row in SRC display
-	if(msg.displayrow1.size() > msg.MAXCHARACTERS)
-	{
-		ROS_WARN("Maximum characters limit reached for display row 1. Please enter upto 20 characters.");
-	}
-	if(msg.displayrow2.size() > msg.MAXCHARACTERS)
-	{
-		ROS_WARN("Maximum characters limit reached for display row 2. Please enter upto 20 characters.");
-	}
-	if(msg.displayrow3.size() > msg.MAXCHARACTERS)
-	{
-		ROS_WARN("Maximum characters limit reached for display row 3. Please enter upto 20 characters.");
-	}
-	if(msg.displayrow4.size() > msg.MAXCHARACTERS)
-	{
-		ROS_WARN("Maximum characters limit reached for display row 4. Please enter upto 20 characters.");
-	}
+  // Check if display message is above MAXCHARACTERS for a row in SRC display
+  if (msg.displayrow1.size() > msg.MAXCHARACTERS)
+  {
+    ROS_WARN("Maximum characters limit reached for display row 1. Please enter upto 20 characters.");
+  }
+  if (msg.displayrow2.size() > msg.MAXCHARACTERS)
+  {
+    ROS_WARN("Maximum characters limit reached for display row 2. Please enter upto 20 characters.");
+  }
+  if (msg.displayrow3.size() > msg.MAXCHARACTERS)
+  {
+    ROS_WARN("Maximum characters limit reached for display row 3. Please enter upto 20 characters.");
+  }
+  if (msg.displayrow4.size() > msg.MAXCHARACTERS)
+  {
+    ROS_WARN("Maximum characters limit reached for display row 4. Please enter upto 20 characters.");
+  }
 }
 
 void VscProcess::receivedDisplayOnCommand(const hri_safe_remote_control_system::SrcDisplay& msg)
-{	
-	// Save the first message we receive as the previous message
-	static bool msg_received = false;
+{
+  // Turn on custom display mode
+  vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
 
-	// Turn on custom display mode
-	vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
+  // Checks if the display messages are below the MAXCHARACTERS limit
+  checkCharacterLimit(msg);
 
-	if (!msg_received)
-	{
-		prev_msg_ = msg;
-		msg_received = true;
-
-		// Checks if the display messages are below the MAXCHARACTERS limit
-		checkCharacterLimit(prev_msg_);
-
-		// Update Display messages
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, msg.displayrow1.c_str());
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg.displayrow2.c_str());
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg.displayrow3.c_str());
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg.displayrow4.c_str());
-		return;
-	}
-
-	// Checks if the display messages are below the MAXCHARACTERS limit
-	checkCharacterLimit(msg);
-
-	// Only send a display message if it is different from the previous message
-	if(msg.displayrow1 != prev_msg_.displayrow1)
-	{
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, msg.displayrow1.c_str());
-	}
-	if(msg.displayrow2 != prev_msg_.displayrow2)
-	{
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg.displayrow2.c_str());
-	}
-	if(msg.displayrow3 != prev_msg_.displayrow3)
-	{
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg.displayrow3.c_str());
-	}
-	if(msg.displayrow4 != prev_msg_.displayrow4)
-	{
-		vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg.displayrow4.c_str());
-	}
-
-	// Save the previous message
-	prev_msg_ = msg;
+  // Update Display messages
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, msg.displayrow1.c_str());
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg.displayrow2.c_str());
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg.displayrow3.c_str());
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg.displayrow4.c_str());
 }
 
 void VscProcess::receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg)
-{	
-	hri_safe_remote_control_system::SrcDisplay clear_msg;
-	clear_msg.displayrow1 = clear_msg.displayrow2 = clear_msg.displayrow3 = clear_msg.displayrow4 = "";
-	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, clear_msg.displayrow1.c_str());
-	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, clear_msg.displayrow2.c_str());
-	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, clear_msg.displayrow3.c_str());
-	vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, clear_msg.displayrow4.c_str());
-	vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_STANDARD);
-
-	// Save the clear message as previous
-	prev_msg_ = clear_msg;
-
-}
-
-bool VscProcess::EmergencyStop(EmergencyStop::Request  &req, EmergencyStop::Response &res )
 {
-	myEStopState = (uint32_t)req.EmergencyStop;
-
-	ROS_WARN("VscProcess::EmergencyStop: to 0x%x", myEStopState);
-
-	return true;
+  hri_safe_remote_control_system::SrcDisplay clear_msg;
+  clear_msg.displayrow1 = clear_msg.displayrow2 = clear_msg.displayrow3 = clear_msg.displayrow4 = "";
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, clear_msg.displayrow1.c_str());
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, clear_msg.displayrow2.c_str());
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, clear_msg.displayrow3.c_str());
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, clear_msg.displayrow4.c_str());
+  vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_STANDARD);
 }
 
-bool VscProcess::KeyValue(KeyValue::Request  &req, KeyValue::Response &res )
+bool VscProcess::EmergencyStop(EmergencyStop::Request& req, EmergencyStop::Response& res)
 {
-	// Send heartbeat message to vehicle in every state
-	vsc_send_user_feedback(vscInterface, req.Key, req.Value);
+  myEStopState = (uint32_t)req.EmergencyStop;
 
-	ROS_INFO("VscProcess::KeyValue: 0x%x, 0x%x", req.Key, req.Value);
+  ROS_WARN("VscProcess::EmergencyStop: to 0x%x", myEStopState);
 
-	return true;
+  return true;
 }
 
-bool VscProcess::KeyString(KeyString::Request  &req, KeyString::Response &res )
+bool VscProcess::KeyValue(KeyValue::Request& req, KeyValue::Response& res)
 {
-	// Send heartbeat message to vehicle in every state
-	vsc_send_user_feedback_string(vscInterface, req.Key, req.Value.c_str());
+  // Send heartbeat message to vehicle in every state
+  vsc_send_user_feedback(vscInterface, req.Key, req.Value);
 
-	ROS_INFO("VscProcess::KeyValue: 0x%x, %s", req.Key, req.Value.c_str());
+  ROS_INFO("VscProcess::KeyValue: 0x%x, 0x%x", req.Key, req.Value);
 
-	return true;
+  return true;
 }
 
+bool VscProcess::KeyString(KeyString::Request& req, KeyString::Response& res)
+{
+  // Send heartbeat message to vehicle in every state
+  vsc_send_user_feedback_string(vscInterface, req.Key, req.Value.c_str());
+
+  ROS_INFO("VscProcess::KeyValue: 0x%x, %s", req.Key, req.Value.c_str());
+
+  return true;
+}
 
 void VscProcess::processOneLoop(const ros::TimerEvent&)
 {
-	// Send heartbeat message to vehicle in every state
-	vsc_send_heartbeat(vscInterface, myEStopState);
+  // Send heartbeat message to vehicle in every state
+  vsc_send_heartbeat(vscInterface, myEStopState);
 
-	// Check for new data from vehicle in every state
-	readFromVehicle();
+  // Check for new data from vehicle in every state
+  readFromVehicle();
 }
 
 int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
 {
-	int retVal = 0;
+  int retVal = 0;
 
-	if(recvMsg.msg.length == sizeof(HeartbeatMsgType)) {
-		ROS_DEBUG("Received Heartbeat from VSC");
+  if (recvMsg.msg.length == sizeof(HeartbeatMsgType))
+  {
+    ROS_DEBUG("Received Heartbeat from VSC");
 
-		HeartbeatMsgType *msgPtr = (HeartbeatMsgType*)recvMsg.msg.data;
+    HeartbeatMsgType* msgPtr = (HeartbeatMsgType*)recvMsg.msg.data;
 
-		// Publish E-STOP Values
-		std_msgs::UInt32 estopValue;
-		estopValue.data = msgPtr->EStopStatus;
-		estopPub.publish(estopValue);
+    // Publish E-STOP Values
+    std_msgs::UInt32 estopValue;
+    estopValue.data = msgPtr->EStopStatus;
+    estopPub.publish(estopValue);
 
-		if(msgPtr->EStopStatus > 0) {
-			ROS_WARN_THROTTLE(5.0, "Received ESTOP from the vehicle!!! 0x%x",msgPtr->EStopStatus);
-		}
+    if (msgPtr->EStopStatus > 0)
+    {
+      ROS_WARN_THROTTLE(5.0, "Received ESTOP from the vehicle!!! 0x%x", msgPtr->EStopStatus);
+    }
+  }
+  else
+  {
+    ROS_WARN("RECEIVED HEARTBEAT WITH INVALID MESSAGE SIZE! Expected: 0x%x, Actual: 0x%x",
+             (unsigned int)sizeof(HeartbeatMsgType),
+             recvMsg.msg.length);
+    retVal = 1;
+  }
 
-	} else {
-		ROS_WARN("RECEIVED HEARTBEAT WITH INVALID MESSAGE SIZE! Expected: 0x%x, Actual: 0x%x",
-				(unsigned int)sizeof(HeartbeatMsgType), recvMsg.msg.length);
-		retVal = 1;
-	}
-
-	return retVal;
+  return retVal;
 }
 
 void VscProcess::readFromVehicle()
 {
-	VscMsgType recvMsg;
+  VscMsgType recvMsg;
 
-	/* Read all messages */
-	while (vsc_read_next_msg(vscInterface, &recvMsg) > 0) {
-		/* Read next Vsc Message */
-		switch (recvMsg.msg.msgType) {
-		case MSG_VSC_HEARTBEAT:
-			if(handleHeartbeatMsg(recvMsg) == 0) {
-				lastDataRx = ros::Time::now();
-			}
-
-			break;
-		case MSG_VSC_JOYSTICK:
-			if(joystickHandler->handleNewMsg(recvMsg) == 0) {
-				lastDataRx = ros::Time::now();
-			}
-
-			break;
-
-		case MSG_VSC_NMEA_STRING:
-//			handleGpsMsg(&recvMsg);
-
-			break;
-		case MSG_USER_FEEDBACK:
-//			handleFeedbackMsg(&recvMsg);
-
-			break;
-		default:
-			errorCounts.invalidRxMsgCount++;
-			ROS_ERROR("Receive Error.  Invalid MsgType (0x%02X)",recvMsg.msg.msgType);
-			break;
-		}
-	}
-
-	// Log warning when no data is received
-	ros::Duration noDataDuration = ros::Time::now() - lastDataRx;
-	data_timed_out_ = noDataDuration > ros::Duration(.25);
-
-  // Check for data received timing out
-  if (data_timed_out_)
+  /* Read all messages */
+  while (vsc_read_next_msg(vscInterface, &recvMsg) > 0)
   {
-    std::ostringstream sts;
-    sts.precision(2);
-    sts << std::fixed;
-    sts << "No Data Received in " << noDataDuration.sec << "." << noDataDuration.nsec << " seconds";
-    alert_helper_ptr_->update(ALERT_CODE_VSC_DISCONNECTED, true, sts.str());
-  }
-  else
-  {
-    alert_helper_ptr_->update(ALERT_CODE_VSC_DISCONNECTED, false);
+    /* Read next Vsc Message */
+    switch (recvMsg.msg.msgType)
+    {
+      case MSG_VSC_HEARTBEAT:
+        if (handleHeartbeatMsg(recvMsg) == 0)
+        {
+          lastDataRx = ros::Time::now();
+        }
+
+        break;
+      case MSG_VSC_JOYSTICK:
+        if (joystickHandler->handleNewMsg(recvMsg) == 0)
+        {
+          lastDataRx = ros::Time::now();
+        }
+
+        break;
+
+      case MSG_VSC_NMEA_STRING:
+        //			handleGpsMsg(&recvMsg);
+
+        break;
+      case MSG_USER_FEEDBACK:
+        //			handleFeedbackMsg(&recvMsg);
+
+        break;
+      default:
+        errorCounts.invalidRxMsgCount++;
+        break;
+    }
   }
 
+  // Log warning when no data is received
+  ros::Duration noDataDuration = ros::Time::now() - lastDataRx;
+  if (noDataDuration > ros::Duration(.25))
+  {
+    ROS_WARN_THROTTLE(.5, "No Data Received in %i.%09i seconds", noDataDuration.sec, noDataDuration.nsec);
+  }
 }
-
-/**
- * recoveryExecute()
- *
- * This method executes the Action to reconnect to the VSC
- */
-void VscProcess::recoveryExecute(const greenzie_msgs::RecoveryGoalConstPtr& goal)
-{
-  ROS_INFO("*************************************************************");
-  ROS_INFO("%s, VSC recovery action is now executing!", ros::this_node::getName().c_str());
-  ROS_INFO("*************************************************************");
-
-  greenzie_msgs::RecoveryResult result{};
-
-  // Attempt to re-open the VSC interface
-
-
-  ros::Rate loop_rate(ros::Duration(1.0));
-  int i = 1;
-  int max_attempts = 10;
-  while (i <= max_attempts)
-  {
-    // Ensure that ROS is still okay
-    if (!ros::ok())
-    {
-      recovery_as_ptr_->setAborted(result);
-      return;
-    }
-
-    // Check if preempt has been requested for this action server
-    if (recovery_as_ptr_->isPreemptRequested())
-    {
-      ROS_INFO("VscProcess Recovery Action 'reconnect_vsc' has been preempted");
-      recovery_as_ptr_->setPreempted(result);
-      return;
-    }
-
-    ROS_INFO("Attempting to reconnect to the VSC...");
-    vscInterface = vsc_initialize(serial_port_.c_str(),serial_speed_);
-    if (vscInterface == NULL)
-    {
-      if (i == max_attempts)
-      {
-        ROS_FATAL("Cannot open serial port! (%s, %i)",serial_port_.c_str(),serial_speed_);
-        recovery_as_ptr_->setAborted(result);
-        return;
-      }
-    }
-    else
-    {
-      ROS_INFO("Connected to VSC on %s : %i",serial_port_.c_str(),serial_speed_);
-      break;
-    }
-
-    // Sleep until next execution cycle
-    i++;
-    loop_rate.sleep();
-  }
-
-  // Wait for data to return
-  i = 0;
-  while (i <= max_attempts)
-  {
-    // Ensure that ROS is still okay
-    if (!ros::ok())
-    {
-      recovery_as_ptr_->setAborted(result);
-      return;
-    }
-
-    // Check to see if data has returned yet
-    if (!data_timed_out_)
-    {
-      ROS_INFO("Alert is no longer active");
-      break;
-    }
-    else
-    {
-      ROS_INFO("Waiting on alert to clear (%d/%d)", i, max_attempts);
-    }
-
-    // Check if preempt has been requested for this action server
-    if (recovery_as_ptr_->isPreemptRequested())
-    {
-      ROS_INFO("VscProcess Recovery Action 'reconnect_vsc' has been preempted");
-      recovery_as_ptr_->setPreempted(result);
-      return;
-    }
-
-    // Sleep until next execution cycle
-    i++;
-    loop_rate.sleep();
-  }
-
-  if (data_timed_out_)
-  {
-    ROS_INFO("Waiting period has expired, but alert is still active. Aborting...");
-    recovery_as_ptr_->setAborted(result);
-    return;
-  }
-
-  recovery_as_ptr_->setSucceeded(result);
-}
-

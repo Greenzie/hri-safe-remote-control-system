@@ -23,28 +23,28 @@
 #include "VehicleMessages.h"
 #include "MsgHandler.h"
 
-namespace hri_safe_remote_control_system {
+namespace hri_safe_remote_control_system
+{
+/**
+ *
+ */
+class JoystickHandler : public MsgHandler
+{
+public:
+  JoystickHandler();
+  ~JoystickHandler();
 
-	/**
-	 *
-	 */
-	class JoystickHandler : public MsgHandler {
-	   public:
-		  JoystickHandler();
-		  ~JoystickHandler();
+  uint32_t handleNewMsg(const VscMsgType& incomingMsg);
 
-		  uint32_t handleNewMsg(const VscMsgType &incomingMsg);
+private:
+  int32_t getStickValue(JoystickType joystick);
+  int32_t getButtonValue(uint8_t button);
 
-	   private:
+  ros::NodeHandle rosNode;
+  ros::Publisher rawLeftPub, rawRightPub;
+  bool useArrowsAsAxes{ false };
+};
 
-		  int32_t getStickValue(JoystickType joystick);
-		  int32_t getButtonValue(uint8_t button);
-
-		  ros::NodeHandle 		rosNode;
-		  ros::Publisher 		rawLeftPub, rawRightPub;
-		  bool 				useArrowsAsAxes{false};
-	};
-
-}
+}  // namespace hri_safe_remote_control_system
 
 #endif
