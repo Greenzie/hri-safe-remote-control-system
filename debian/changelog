@@ -1,3 +1,11 @@
+ros-melodic-hri-safe-remote-control-system (0.2.0-bionic6) bionic; urgency=medium
+
+  * allowing other packages to use hri include directory,
+    SerialInterface.h used in greenzie_hardware for sapcorda monitor
+    node.
+
+ -- Jonathan Sanabria <jonathan@greenzie.com>  Tue, 15 Jun 2021 17:53:38 -0400
+
 ros-melodic-hri-safe-remote-control-system (0.2.0-bionic5) bionic; urgency=medium
 
   * Fix SRC Display on startup/shutdown bug, remove more spam 
