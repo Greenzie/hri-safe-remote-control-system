@@ -72,7 +72,7 @@ target_link_libraries(safe_remote_control
 
 include_directories(
     include
-    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+    DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
 )
 
 ## Mark executables and/or libraries for installation
