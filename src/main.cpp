@@ -13,7 +13,7 @@
  */
 
 #include "ros/ros.h"
-#include "VscProcess.h"
+#include "hri_safe_remote_control_system/VscProcess.h"
 
 hri_safe_remote_control_system::VscProcess* VSCInterface;
 
