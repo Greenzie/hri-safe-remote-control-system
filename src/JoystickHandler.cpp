@@ -18,8 +18,8 @@
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
 
-#include <VehicleMessages.h>
-#include <JoystickHandler.h>
+#include <hri_safe_remote_control_system/VehicleMessages.h>
+#include <hri_safe_remote_control_system/JoystickHandler.h>
 
 using namespace hri_safe_remote_control_system;
 

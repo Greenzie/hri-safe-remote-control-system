@@ -70,9 +70,9 @@ target_link_libraries(safe_remote_control
         ${catkin_LIBRARIES}
 )
 
-include_directories(
-    include
-    DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+# Mark cpp header files for installation
+install(DIRECTORY include/${PROJECT_NAME}
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 ## Mark executables and/or libraries for installation

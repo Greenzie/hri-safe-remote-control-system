@@ -31,10 +31,10 @@
 /**
  * Includes
  */
-#include <VscProcess.h>
-#include <JoystickHandler.h>
-#include <VehicleInterface.h>
-#include <VehicleMessages.h>
+#include <hri_safe_remote_control_system/VscProcess.h>
+#include <hri_safe_remote_control_system/JoystickHandler.h>
+#include <hri_safe_remote_control_system/VehicleInterface.h>
+#include <hri_safe_remote_control_system/VehicleMessages.h>
 
 using namespace hri_safe_remote_control_system;
 
