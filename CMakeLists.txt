@@ -5,7 +5,6 @@ find_package(catkin REQUIRED
         roscpp
         std_msgs
         sensor_msgs
-        greenzie_common
         genmsg
         message_runtime
         message_generation
