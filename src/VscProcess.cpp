@@ -41,27 +41,25 @@ using namespace hri_safe_remote_control_system;
 VscProcess::VscProcess() : myEStopState(0)
 {
   ros::NodeHandle nh("~");
-  std::string serialPort = "/dev/ttyACM0";
-  if (nh.getParam("port", serialPort))
+  if (nh.getParam("port", serial_port_))
   {
-    ROS_INFO("Serial Port updated to:  %s", serialPort.c_str());
+    ROS_INFO("Serial Port updated to:  %s", serial_port_.c_str());
   }
 
-  int serialSpeed = 115200;
-  if (nh.getParam("serial_speed", serialSpeed))
+  if (nh.getParam("serial_speed", serial_speed_))
   {
-    ROS_INFO("Serial Port Speed updated to:  %i", serialSpeed);
+    ROS_INFO("Serial Port Speed updated to:  %i", serial_speed_);
   }
 
   /* Open VSC Interface */
-  vscInterface = vsc_initialize(serialPort.c_str(), serialSpeed);
+  vscInterface = vsc_initialize(serial_port_.c_str(), serial_speed_);
   if (vscInterface == NULL)
   {
-    ROS_FATAL("Cannot open serial port! (%s, %i)", serialPort.c_str(), serialSpeed);
+    ROS_FATAL("Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
   }
   else
   {
-    ROS_INFO("Connected to VSC on %s : %i", serialPort.c_str(), serialSpeed);
+    ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
   }
 
   // Attempt to Set priority
@@ -116,7 +114,9 @@ VscProcess::~VscProcess()
   vsc_cleanup(vscInterface);
 
   if (joystickHandler)
+  {
     delete joystickHandler;
+  }
 }
 
 void VscProcess::receivedVibration(const std_msgs::Bool msg)
@@ -288,5 +288,17 @@ void VscProcess::readFromVehicle()
   if (noDataDuration > ros::Duration(.25))
   {
     ROS_WARN_THROTTLE(.5, "No Data Received in %i.%09i seconds", noDataDuration.sec, noDataDuration.nsec);
+    ROS_WARN_STREAM("Attempting to reconnect to the VSC...");
+    /* Open VSC Interface */
+    vscInterface = vsc_initialize(serial_port_.c_str(), serial_speed_);
+    if (vscInterface == NULL)
+    {
+      ROS_FATAL("Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
+    }
+    else
+    {
+      ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
+    }
+    // On fail, we expect a crash at the moment. This will mean that the node respawns
   }
 }

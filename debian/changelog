@@ -1,3 +1,9 @@
+ros-melodic-hri-safe-remote-control-system (0.2.0-bionic7) bionic; urgency=medium
+
+  * Automatically reconnect to VSC if disconnected 
+
+ -- Steven Leonis <stevenl@greenzie.com>  Wed, 16 Jun 2021 15:32:00 -0400
+
 ros-melodic-hri-safe-remote-control-system (0.2.0-bionic6) bionic; urgency=medium
 
   * allowing other packages to use hri include directory,
