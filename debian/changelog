@@ -1,3 +1,11 @@
+ros-melodic-hri-safe-remote-control-system (0.2.0-bionic8) bionic; urgency=medium
+
+  * installing include directory, moving all headers into the include/
+    convention, and updating the preprocessor #includes to use
+    hri_safe_remote_control_system/*.h .
+
+ -- Jonathan Sanabria <jonathan@greenzie.com>  Wed, 16 Jun 2021 16:56:40 -0400
+
 ros-melodic-hri-safe-remote-control-system (0.2.0-bionic7) bionic; urgency=medium
 
   * Automatically reconnect to VSC if disconnected 
