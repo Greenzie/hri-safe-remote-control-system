@@ -21,7 +21,6 @@
 #include "ros/ros.h"
 #include <std_msgs/Bool.h>
 #include <std_msgs/Empty.h>
-#include <actionlib/server/simple_action_server.h>
 
 #include "hri_safe_remote_control_system/EmergencyStop.h"
 #include "hri_safe_remote_control_system/KeyValue.h"
@@ -76,6 +75,8 @@ private:
   // Local State
   uint32_t myEStopState;
   ErrorCounterType errorCounts;
+  std::string serial_port_ = "/dev/ttyACM0";
+  int serial_speed_ = 115200;
 
   // ROS
   ros::NodeHandle rosNode;
