@@ -1,3 +1,9 @@
+ros-melodic-hri-safe-remote-control-system (0.2.0-bionic9) bionic; urgency=medium
+
+  * Update install directory
+
+ -- David Jensen <david@greenzie.com>  Thu, 17 Jun 2021 11:22:54 -0400
+
 ros-melodic-hri-safe-remote-control-system (0.2.0-bionic8) bionic; urgency=medium
 
   * installing include directory, moving all headers into the include/
