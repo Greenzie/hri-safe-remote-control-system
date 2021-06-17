@@ -71,7 +71,7 @@ target_link_libraries(safe_remote_control
 )
 
 # Mark cpp header files for installation
-install(DIRECTORY include/${PROJECT_NAME}
+install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
