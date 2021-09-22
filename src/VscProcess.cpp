@@ -235,9 +235,23 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
     uIntRosPub(&vscModePub, msgPtr->VscMode);
     uIntRosPub(&estopPub, msgPtr->EStopStatus);
 
-    if (msgPtr->EStopStatus > 0)
+    bool estop_vehicle = (msgPtr->EStopStatus >> 2) & 0x01;
+    bool estop_src = msgPtr->EStopStatus & 0x01;
+    if (estop_vehicle && estop_src)
+    {
+      ROS_WARN_THROTTLE(5.0, "Received ESTOP from the vehicle and SRC!!! 0x%x", msgPtr->EStopStatus);
+    }
+    else if (estop_vehicle)
     {
       ROS_WARN_THROTTLE(5.0, "Received ESTOP from the vehicle!!! 0x%x", msgPtr->EStopStatus);
+    }
+    else if (estop_src)
+    {
+      ROS_WARN_THROTTLE(5.0, "Received ESTOP from the SRC!!! 0x%x", msgPtr->EStopStatus);
+    }
+    else if (msgPtr->EStopStatus > 0)
+    {
+      ROS_WARN_THROTTLE(5.0, "Unknown ESTOP signal on Vsc!!! 0x%x", msgPtr->EStopStatus);
     }
   }
   else
