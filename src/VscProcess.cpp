@@ -89,7 +89,15 @@ VscProcess::VscProcess() : myEStopState(0)
 
   // Publish Emergency Stop Status
   estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
+  
+  // Publish Remote Status
+  vscModePub = rosNode.advertise<std_msgs::UInt32>("safety/vsc/mode", 10);
+  batteryLevelPub = rosNode.advertise<std_msgs::UInt32>("safety/src/battery/level", 10);
+  batteryChargingPub = rosNode.advertise<std_msgs::Bool>("safety/src/battery/is_charging", 10);
+  vscConnectionStrengthPub = rosNode.advertise<std_msgs::UInt32>("safety/vsc/connection_strength", 10);
+  srcConnectionStrengthPub = rosNode.advertise<std_msgs::UInt32>("safety/src/connection_strength", 10);
 
+  // Subscribe for SRC actions
   vibrateSrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
   displaySrcOnSub = rosNode.subscribe("/src_display_mode_on", 1, &VscProcess::receivedDisplayOnCommand, this);
   displaySrcOffSub = rosNode.subscribe("/src_display_mode_off", 1, &VscProcess::receivedDisplayOffCommand, this);
@@ -223,10 +231,9 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
 
     HeartbeatMsgType* msgPtr = (HeartbeatMsgType*)recvMsg.msg.data;
 
-    // Publish E-STOP Values
-    std_msgs::UInt32 estopValue;
-    estopValue.data = msgPtr->EStopStatus;
-    estopPub.publish(estopValue);
+    // Publish Values
+    uIntRosPub(&vscModePub, msgPtr->VscMode);
+    uIntRosPub(&estopPub, msgPtr->EStopStatus);
 
     if (msgPtr->EStopStatus > 0)
     {
@@ -236,6 +243,43 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
   else
   {
     ROS_WARN("RECEIVED HEARTBEAT WITH INVALID MESSAGE SIZE! Expected: 0x%x, Actual: 0x%x",
+             (unsigned int)sizeof(HeartbeatMsgType),
+             recvMsg.msg.length);
+    retVal = 1;
+  }
+
+  return retVal;
+}
+
+void VscProcess::uIntRosPub(ros::Publisher* pubPtr, uint32_t value)
+{
+  std_msgs::UInt32 ros_uint;
+  ros_uint.data = value ;
+  pubPtr->publish(ros_uint);
+}
+
+int VscProcess::handleRemoteStatusMsg(VscMsgType& recvMsg)
+{
+  int retVal = 0;
+
+  if (recvMsg.msg.length == sizeof(RemoteStatusMsgType))
+  {
+    ROS_DEBUG("Received Remote Status Msg from VSC");
+
+    RemoteStatusMsgType* msgPtr = (RemoteStatusMsgType*)recvMsg.msg.data;
+
+    // Publish Status Values
+    std_msgs::Bool ros_bool;
+    ros_bool.data = msgPtr->battery_charging ;
+    batteryChargingPub.publish(ros_bool);
+
+    uIntRosPub(&batteryLevelPub, msgPtr->battery_level);
+    uIntRosPub(&vscConnectionStrengthPub, msgPtr->connection_strength_vsc);
+    uIntRosPub(&srcConnectionStrengthPub, msgPtr->connection_strength_src);
+  }
+  else
+  {
+    ROS_WARN("RECEIVED REMOTE STATUS WITH INVALID MESSAGE SIZE! Expected: 0x%x, Actual: 0x%x",
              (unsigned int)sizeof(HeartbeatMsgType),
              recvMsg.msg.length);
     retVal = 1;
@@ -259,23 +303,24 @@ void VscProcess::readFromVehicle()
         {
           lastDataRx = ros::Time::now();
         }
-
         break;
       case MSG_VSC_JOYSTICK:
         if (joystickHandler->handleNewMsg(recvMsg) == 0)
         {
           lastDataRx = ros::Time::now();
         }
-
         break;
-
+      case MSG_USER_REMOTE_STATUS:
+        if(handleRemoteStatusMsg(recvMsg) == 0)
+        {
+          lastDataRx = ros::Time::now();
+        }
+        break; 
       case MSG_VSC_NMEA_STRING:
         //			handleGpsMsg(&recvMsg);
-
         break;
       case MSG_USER_FEEDBACK:
         //			handleFeedbackMsg(&recvMsg);
-
         break;
       default:
         errorCounts.invalidRxMsgCount++;

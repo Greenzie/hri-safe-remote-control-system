@@ -59,6 +59,7 @@ enum VSC_STATES_TYPE
 
 /** VSC_MESSAGE_TYPE
  * 	The enumerated values of VSC messages.
+ * https://hriwiki.atlassian.net/wiki/spaces/DOC/pages/44826637/SCM+Interface#SCMInterface-RemoteStatusMessage%3A0x22(FromVSC)
  */
 enum VSC_MESSAGE_TYPE
 {
@@ -66,6 +67,7 @@ enum VSC_MESSAGE_TYPE
   MSG_VSC_NMEA_STRING = 0x12,
   MSG_VSC_HEARTBEAT = 0x20,
   MSG_USER_HEARTBEAT = 0x21,
+  MSG_USER_REMOTE_STATUS = 0x22,
   MSG_USER_FEEDBACK = 0x30,
   MSG_USER_FEEDBACK_STRING = 0x31
 };
@@ -167,6 +169,20 @@ typedef struct
   SwitchType leftSwitch;
   SwitchType rightSwitch;
 } JoystickMsgType;
+
+/** RemoteStatusMsgType
+ * 	The union for Remote Status Messages.  This contains
+ * 	the 16-bit header, message type, length, data fields and fletcher checksum.
+ */
+typedef struct
+{
+  uint8_t battery_level;    // 1-100%, in 10% increments
+  uint8_t battery_charging;    // 0/1 "bool"
+  uint8_t connection_strength_vsc; // low 0/1/2 high : as percieved by VSC
+  uint8_t connection_strength_src; // low 0/1/2 high : as percieved by SRC
+  uint8_t rssi_vsc; // documentation says "Reserved for future use"
+  uint8_t rssi_src; // documentation says "Reserved for future use"
+} RemoteStatusMsgType;
 
 /** ESTOP_STATUS_TYPE
  * 	The enumerated values of the emergency stop values.

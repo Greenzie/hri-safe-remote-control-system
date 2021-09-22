@@ -70,7 +70,9 @@ public:
 
 private:
   void readFromVehicle();
+  void uIntRosPub(ros::Publisher* pubPtr, uint32_t value);
   int handleHeartbeatMsg(VscMsgType& recvMsg);
+  int handleRemoteStatusMsg(VscMsgType& recvMsg);
 
   // Local State
   uint32_t myEStopState;
@@ -83,6 +85,11 @@ private:
   ros::Timer mainLoopTimer;
   ros::ServiceServer estopServ, keyValueServ, keyStringServ;
   ros::Publisher estopPub;
+  ros::Publisher vscModePub; // 0x20 MSG_VSC_HEARTBEAT 0/4/6/9/10/11
+  ros::Publisher batteryLevelPub;      // int
+  ros::Publisher batteryChargingPub;   // bool
+  ros::Publisher vscConnectionStrengthPub;  // 0/1/2 == low/med/high : as percieved by vsc
+  ros::Publisher srcConnectionStrengthPub;  // 0/1/2 == low/med/high : as percieved by src
   ros::Subscriber vibrateSrcSub;
   ros::Subscriber displaySrcOnSub;
   ros::Subscriber displaySrcOffSub;
