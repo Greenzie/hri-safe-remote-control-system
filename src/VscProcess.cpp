@@ -90,12 +90,8 @@ VscProcess::VscProcess() : myEStopState(0)
   // Publish Emergency Stop Status
   estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
   
-  // Publish Remote Status
-  vscModePub = rosNode.advertise<std_msgs::UInt32>("safety/vsc/mode", 10);
-  batteryLevelPub = rosNode.advertise<std_msgs::UInt32>("safety/src/battery/level", 10);
-  batteryChargingPub = rosNode.advertise<std_msgs::Bool>("safety/src/battery/is_charging", 10);
-  vscConnectionStrengthPub = rosNode.advertise<std_msgs::UInt32>("safety/vsc/connection_strength", 10);
-  srcConnectionStrengthPub = rosNode.advertise<std_msgs::UInt32>("safety/src/connection_strength", 10);
+  // Publish Vsc Health
+  safetyHealthPub = rosNode.advertise<hri_safe_remote_control_system::FortHealth>("safety/health_status", 10);
 
   // Subscribe for SRC actions
   vibrateSrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
@@ -230,10 +226,12 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
     ROS_DEBUG("Received Heartbeat from VSC");
 
     HeartbeatMsgType* msgPtr = (HeartbeatMsgType*)recvMsg.msg.data;
+    latest_vsc_mode_ = msgPtr->VscMode ;
 
     // Publish Values
-    uIntRosPub(&vscModePub, msgPtr->VscMode);
-    uIntRosPub(&estopPub, msgPtr->EStopStatus);
+    std_msgs::UInt32 estopValue;
+    estopValue.data = msgPtr->EStopStatus;
+    estopPub.publish(estopValue);
 
     bool estop_vehicle = (msgPtr->EStopStatus >> 2) & 0x01;
     bool estop_src = msgPtr->EStopStatus & 0x01;
@@ -265,31 +263,18 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
   return retVal;
 }
 
-void VscProcess::uIntRosPub(ros::Publisher* pubPtr, uint32_t value)
-{
-  std_msgs::UInt32 ros_uint;
-  ros_uint.data = value ;
-  pubPtr->publish(ros_uint);
-}
-
 int VscProcess::handleRemoteStatusMsg(VscMsgType& recvMsg)
 {
   int retVal = 0;
 
-  if (recvMsg.msg.length == sizeof(RemoteStatusMsgType))
+  if (recvMsg.msg.length == (sizeof(*safetyHealthMsg)-sizeof(latest_vsc_mode_)))
   {
     ROS_DEBUG("Received Remote Status Msg from VSC");
 
-    RemoteStatusMsgType* msgPtr = (RemoteStatusMsgType*)recvMsg.msg.data;
-
     // Publish Status Values
-    std_msgs::Bool ros_bool;
-    ros_bool.data = msgPtr->battery_charging ;
-    batteryChargingPub.publish(ros_bool);
-
-    uIntRosPub(&batteryLevelPub, msgPtr->battery_level);
-    uIntRosPub(&vscConnectionStrengthPub, msgPtr->connection_strength_vsc);
-    uIntRosPub(&srcConnectionStrengthPub, msgPtr->connection_strength_src);
+    safetyHealthMsg = (FortHealth*)recvMsg.msg.data;
+    safetyHealthMsg->vsc_mode = latest_vsc_mode_;
+    safetyHealthPub.publish(*safetyHealthMsg);
   }
   else
   {

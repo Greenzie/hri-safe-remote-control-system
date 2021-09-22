@@ -27,6 +27,7 @@ add_message_files(
         DIRECTORY msg
         FILES
         SrcDisplay.msg
+        FortHealth.msg
 )
 
 generate_messages(

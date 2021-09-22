@@ -25,7 +25,8 @@
 #include "hri_safe_remote_control_system/EmergencyStop.h"
 #include "hri_safe_remote_control_system/KeyValue.h"
 #include "hri_safe_remote_control_system/KeyString.h"
-#include <hri_safe_remote_control_system/SrcDisplay.h>
+#include "hri_safe_remote_control_system/SrcDisplay.h"
+#include "hri_safe_remote_control_system/FortHealth.h"
 
 /**
  * HRI_COMMON Includes
@@ -70,7 +71,6 @@ public:
 
 private:
   void readFromVehicle();
-  void uIntRosPub(ros::Publisher* pubPtr, uint32_t value);
   int handleHeartbeatMsg(VscMsgType& recvMsg);
   int handleRemoteStatusMsg(VscMsgType& recvMsg);
 
@@ -79,17 +79,16 @@ private:
   ErrorCounterType errorCounts;
   std::string serial_port_ = "/dev/ttyACM0";
   int serial_speed_ = 115200;
+  
+  // cached
+  uint8_t latest_vsc_mode_{0};
 
   // ROS
   ros::NodeHandle rosNode;
   ros::Timer mainLoopTimer;
   ros::ServiceServer estopServ, keyValueServ, keyStringServ;
   ros::Publisher estopPub;
-  ros::Publisher vscModePub; // 0x20 MSG_VSC_HEARTBEAT 0/4/6/9/10/11
-  ros::Publisher batteryLevelPub;      // int
-  ros::Publisher batteryChargingPub;   // bool
-  ros::Publisher vscConnectionStrengthPub;  // 0/1/2 == low/med/high : as percieved by vsc
-  ros::Publisher srcConnectionStrengthPub;  // 0/1/2 == low/med/high : as percieved by src
+  ros::Publisher safetyHealthPub;
   ros::Subscriber vibrateSrcSub;
   ros::Subscriber displaySrcOnSub;
   ros::Subscriber displaySrcOffSub;
@@ -97,6 +96,7 @@ private:
 
   // Message Handlers
   MsgHandler* joystickHandler;
+  FortHealth* safetyHealthMsg;
 
   /* File descriptor for VSC Interface */
   VscInterfaceType* vscInterface;
