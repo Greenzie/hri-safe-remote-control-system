@@ -315,7 +315,6 @@ void VscProcess::readFromVehicle()
         }
         break;
       case MSG_VSC_REMOTE_STATUS:
-        ROS_WARN_STREAM("MSG_VSC_REMOTE_STATUS has been received");
         if(handleRemoteStatusMsg(recvMsg) == 0)
         {
           lastDataRx = ros::Time::now();
