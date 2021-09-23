@@ -240,7 +240,6 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
 
     bool estop_vehicle = (msgPtr->EStopStatus >> 2) & 0x01;
     bool estop_src = msgPtr->EStopStatus & 0x01;
-    bool searching_for_src = latest_vsc_mode_ == 4;
     if (estop_vehicle && estop_src)
     {
       ROS_WARN_THROTTLE(5.0, "Received ESTOP from the vehicle and SRC!!! 0x%x", msgPtr->EStopStatus);
@@ -249,14 +248,10 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
     {
       ROS_WARN_THROTTLE(5.0, "Received ESTOP from the vehicle!!! 0x%x", msgPtr->EStopStatus);
     }
-    else if (estop_src && !searching_for_src)
+    else if (estop_src)
     {
-      // explicitly checking estop_src && !searching_for_src because SRC off looks like an SRC Estop
+      //  estop_src && VSC searching state (mode==4), happen when SRC is off AND when Estop turned on
       ROS_WARN_THROTTLE(5.0, "Received ESTOP from the SRC!!! 0x%x", msgPtr->EStopStatus);
-    }
-    else if (searching_for_src)
-    {
-      ROS_WARN_THROTTLE(5.0, "Searching for SRC!!!");
     }
     else if (msgPtr->EStopStatus > 0)
     {
