@@ -60,6 +60,11 @@ VscProcess::VscProcess() : myEStopState(0)
   else
   {
     ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
+    // enable VSC Remote Status, we only need to set this once 
+    // thus we can assume that by the time the mower leaves the manufacturer the VSC has run this once.
+    uint8_t enableMessage = 1;
+    uint16_t milliSecondInterval = 1000;
+    vsc_send_control_msg_rate(vscInterface, MSG_VSC_REMOTE_STATUS, enableMessage, milliSecondInterval);       
   }
 
   // Attempt to Set priority
@@ -91,7 +96,7 @@ VscProcess::VscProcess() : myEStopState(0)
   estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
   
   // Publish Vsc Health
-  safetyHealthPub = rosNode.advertise<hri_safe_remote_control_system::FortHealth>("safety/health_status", 10);
+  safetyHealthPub = rosNode.advertise<hri_safe_remote_control_system::SrcHealth>("safety/health_status", 10);
 
   // Subscribe for SRC actions
   vibrateSrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
@@ -272,7 +277,7 @@ int VscProcess::handleRemoteStatusMsg(VscMsgType& recvMsg)
     ROS_DEBUG("Received Remote Status Msg from VSC");
 
     // Publish Status Values
-    safetyHealthMsg = (FortHealth*)recvMsg.msg.data;
+    safetyHealthMsg = (SrcHealth*)recvMsg.msg.data;
     safetyHealthMsg->vsc_mode = latest_vsc_mode_;
     safetyHealthPub.publish(*safetyHealthMsg);
   }
@@ -309,7 +314,7 @@ void VscProcess::readFromVehicle()
           lastDataRx = ros::Time::now();
         }
         break;
-      case MSG_USER_REMOTE_STATUS:
+      case MSG_VSC_REMOTE_STATUS:
         if(handleRemoteStatusMsg(recvMsg) == 0)
         {
           lastDataRx = ros::Time::now();

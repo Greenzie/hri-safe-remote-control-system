@@ -26,7 +26,7 @@
 #include "hri_safe_remote_control_system/KeyValue.h"
 #include "hri_safe_remote_control_system/KeyString.h"
 #include "hri_safe_remote_control_system/SrcDisplay.h"
-#include "hri_safe_remote_control_system/FortHealth.h"
+#include "hri_safe_remote_control_system/SrcHealth.h"
 
 /**
  * HRI_COMMON Includes
@@ -96,7 +96,7 @@ private:
 
   // Message Handlers
   MsgHandler* joystickHandler;
-  FortHealth* safetyHealthMsg;
+  SrcHealth* safetyHealthMsg;
 
   /* File descriptor for VSC Interface */
   VscInterfaceType* vscInterface;
