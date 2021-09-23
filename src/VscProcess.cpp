@@ -96,7 +96,7 @@ VscProcess::VscProcess() : myEStopState(0)
   estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
   
   // Publish Vsc Health
-  safetyHealthPub = rosNode.advertise<hri_safe_remote_control_system::SrcHealth>("safety/health_status", 10);
+  srcHealthPub = rosNode.advertise<hri_safe_remote_control_system::SrcHealth>("safety/health_status", 10);
 
   // Subscribe for SRC actions
   vibrateSrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
@@ -272,14 +272,14 @@ int VscProcess::handleRemoteStatusMsg(VscMsgType& recvMsg)
 {
   int retVal = 0;
 
-  if (recvMsg.msg.length == (sizeof(*safetyHealthMsg)-sizeof(latest_vsc_mode_)))
+  if (recvMsg.msg.length == (sizeof(*srcHealthMsg)-sizeof(latest_vsc_mode_)))
   {
     ROS_DEBUG("Received Remote Status Msg from VSC");
 
     // Publish Status Values
-    safetyHealthMsg = (SrcHealth*)recvMsg.msg.data;
-    safetyHealthMsg->vsc_mode = latest_vsc_mode_;
-    safetyHealthPub.publish(*safetyHealthMsg);
+    srcHealthMsg = (SrcHealth*)recvMsg.msg.data;
+    srcHealthMsg->vsc_mode = latest_vsc_mode_;
+    srcHealthPub.publish(*srcHealthMsg);
   }
   else
   {
@@ -315,6 +315,7 @@ void VscProcess::readFromVehicle()
         }
         break;
       case MSG_VSC_REMOTE_STATUS:
+        ROS_WARN_STREAM("MSG_VSC_REMOTE_STATUS has been received");
         if(handleRemoteStatusMsg(recvMsg) == 0)
         {
           lastDataRx = ros::Time::now();

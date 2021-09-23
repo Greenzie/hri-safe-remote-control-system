@@ -88,7 +88,7 @@ private:
   ros::Timer mainLoopTimer;
   ros::ServiceServer estopServ, keyValueServ, keyStringServ;
   ros::Publisher estopPub;
-  ros::Publisher safetyHealthPub;
+  ros::Publisher srcHealthPub;
   ros::Subscriber vibrateSrcSub;
   ros::Subscriber displaySrcOnSub;
   ros::Subscriber displaySrcOffSub;
@@ -96,7 +96,7 @@ private:
 
   // Message Handlers
   MsgHandler* joystickHandler;
-  SrcHealth* safetyHealthMsg;
+  SrcHealth* srcHealthMsg;
 
   /* File descriptor for VSC Interface */
   VscInterfaceType* vscInterface;
