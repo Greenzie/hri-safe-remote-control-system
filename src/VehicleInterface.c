@@ -294,25 +294,25 @@ int32_t vsc_get_button_value(uint8_t button) {
  * @param interval Time between transmissions in milliseconds (20 to 2^16-1).
  */
 void vsc_send_control_msg_rate(VscInterfaceType* vscInterface, uint8_t msgTypeToModify,  uint8_t enableMessage, uint16_t interval) {
-	VscMsgType feedbackMsg;
-	ControlMessageRateMsgType *msgPtr = (ControlMessageRateMsgType*) feedbackMsg.msg.data;
-    memset(feedbackMsg.msg.data, 0, sizeof(feedbackMsg.msg.data));
+  VscMsgType feedbackMsg;
+  ControlMessageRateMsgType *msgPtr = (ControlMessageRateMsgType*) feedbackMsg.msg.data;
+  memset(feedbackMsg.msg.data, 0, sizeof(feedbackMsg.msg.data));
 
-	/* Set message fields */
-	msgPtr->msgTypeToModify = msgTypeToModify;
-	msgPtr->enableMessage = enableMessage;
-	msgPtr->interval = interval;
+  /* Set message fields */
+  msgPtr->msgTypeToModify = msgTypeToModify;
+  msgPtr->enableMessage = enableMessage;
+  msgPtr->interval = interval;
 
-	/* Fill Message */
-	feedbackMsg.msg.msgType = MSG_USER_CONTROL_MSG_RATE;
-	feedbackMsg.msg.length = sizeof(ControlMessageRateMsgType);
-    memcpy(feedbackMsg.msg.data, msgPtr, feedbackMsg.msg.length);
+  /* Fill Message */
+  feedbackMsg.msg.msgType = MSG_USER_CONTROL_MSG_RATE;
+  feedbackMsg.msg.length = sizeof(ControlMessageRateMsgType);
+  memcpy(feedbackMsg.msg.data, msgPtr, feedbackMsg.msg.length);
 
-	/* Send Message */
-	if (vsc_send_msg(vscInterface, &feedbackMsg) < 0) {
+  /* Send Message */
+  if (vsc_send_msg(vscInterface, &feedbackMsg) < 0) {
     // Error print commented out due to spam
-	  fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
-	}
+    fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+  }
 }
 
 /**
