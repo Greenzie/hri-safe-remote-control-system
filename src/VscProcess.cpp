@@ -59,12 +59,7 @@ VscProcess::VscProcess() : myEStopState(0)
   }
   else
   {
-    ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
-    // enable VSC Remote Status, we only need to set this once 
-    // thus we can assume that by the time the mower leaves the manufacturer the VSC has run this once.
-    uint8_t enableMessage = 1;
-    uint16_t milliSecondInterval = 1000;
-    vsc_send_control_msg_rate(vscInterface, MSG_VSC_REMOTE_STATUS, enableMessage, milliSecondInterval);       
+    ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);    
   }
 
   // Attempt to Set priority
@@ -108,6 +103,7 @@ VscProcess::VscProcess() : myEStopState(0)
 
   // Init last time to now
   lastDataRx = ros::Time::now();
+  lastRemoteStatusRxTime = lastDataRx;
 
   // Clear all error counters
   memset(&errorCounts, 0, sizeof(errorCounts));
@@ -276,6 +272,7 @@ int VscProcess::handleRemoteStatusMsg(VscMsgType& recvMsg)
   if (recvMsg.msg.length == (sizeof(*srcHealthMsg)-sizeof(latest_vsc_mode_)))
   {
     ROS_DEBUG("Received Remote Status Msg from VSC");
+    lastRemoteStatusRxTime = ros::Time::now();
 
     // Publish Status Values
     srcHealthMsg = (SrcHealth*)recvMsg.msg.data;
@@ -285,7 +282,7 @@ int VscProcess::handleRemoteStatusMsg(VscMsgType& recvMsg)
   else
   {
     ROS_WARN("RECEIVED REMOTE STATUS WITH INVALID MESSAGE SIZE! Expected: 0x%x, Actual: 0x%x",
-             (unsigned int)sizeof(HeartbeatMsgType),
+             (unsigned int)(sizeof(*srcHealthMsg)-sizeof(latest_vsc_mode_)),
              recvMsg.msg.length);
     retVal = 1;
   }
@@ -350,5 +347,15 @@ void VscProcess::readFromVehicle()
       ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
     }
     // On fail, we expect a crash at the moment. This will mean that the node respawns
+  }
+  ros::Duration noRemoteStatusDuration = ros::Time::now() - lastRemoteStatusRxTime;
+  if (vscInterface != NULL && noRemoteStatusDuration > ros::Duration(2.0))
+  {
+    ROS_WARN_THROTTLE(.5, "No Remote Status Received in %i.%09i seconds", noRemoteStatusDuration.sec, noRemoteStatusDuration.nsec);
+    ROS_WARN_STREAM("Attempting to send the control rate msg to VSC...");
+    uint8_t enableMessage = 1;
+    uint16_t milliSecondInterval = 1000;
+    /* Enable Remote Status Messages */
+    vsc_send_control_msg_rate(vscInterface, MSG_VSC_REMOTE_STATUS, enableMessage, milliSecondInterval);   
   }
 }

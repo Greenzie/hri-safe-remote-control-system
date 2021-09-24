@@ -81,7 +81,7 @@ private:
   int serial_speed_ = 115200;
   
   // cached
-  uint8_t latest_vsc_mode_{0};
+  uint8_t latest_vsc_mode_{ 0 };
 
   // ROS
   ros::NodeHandle rosNode;
@@ -92,7 +92,7 @@ private:
   ros::Subscriber vibrateSrcSub;
   ros::Subscriber displaySrcOnSub;
   ros::Subscriber displaySrcOffSub;
-  ros::Time lastDataRx, lastTxTime;
+  ros::Time lastDataRx, lastTxTime, lastRemoteStatusRxTime;
 
   // Message Handlers
   MsgHandler* joystickHandler;

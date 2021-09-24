@@ -311,7 +311,7 @@ void vsc_send_control_msg_rate(VscInterfaceType* vscInterface, uint8_t msgTypeTo
   /* Send Message */
   if (vsc_send_msg(vscInterface, &feedbackMsg) < 0) {
     // Error print commented out due to spam
-    fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+    fprintf(stderr, "vsc_send_control_msg_rate: Send Message Failure (Errno: %i)\n", errno);
   }
 }
 
