@@ -356,6 +356,8 @@ void VscProcess::readFromVehicle()
     uint8_t enableMessage = 1;
     uint16_t milliSecondInterval = 1000;
     /* Enable Remote Status Messages */
-    vsc_send_control_msg_rate(vscInterface, MSG_VSC_REMOTE_STATUS, enableMessage, milliSecondInterval);   
+    vsc_send_control_msg_rate(vscInterface, MSG_VSC_REMOTE_STATUS, enableMessage, milliSecondInterval);
+    // reset rx time to allow time for VSC to send a message
+    lastRemoteStatusRxTime = ros::Time::now();   
   }
 }
