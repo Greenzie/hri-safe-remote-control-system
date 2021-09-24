@@ -352,7 +352,7 @@ void VscProcess::readFromVehicle()
   if (vscInterface != NULL && noRemoteStatusDuration > ros::Duration(2.0))
   {
     ROS_WARN_THROTTLE(.5, "No Remote Status Received in %i.%09i seconds", noRemoteStatusDuration.sec, noRemoteStatusDuration.nsec);
-    ROS_WARN_STREAM("Attempting to send the control rate msg to VSC...");
+    ROS_WARN_THROTTLE(.5, "Attempting to send the control rate msg to VSC...");
     uint8_t enableMessage = 1;
     uint16_t milliSecondInterval = 1000;
     /* Enable Remote Status Messages */
