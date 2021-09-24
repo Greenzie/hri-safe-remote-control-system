@@ -89,7 +89,11 @@ VscProcess::VscProcess() : myEStopState(0)
 
   // Publish Emergency Stop Status
   estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
+  
+  // Publish Vsc Health
+  srcHealthPub = rosNode.advertise<hri_safe_remote_control_system::SrcHealth>("safety/health_status", 10);
 
+  // Subscribe for SRC actions
   vibrateSrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
   displaySrcOnSub = rosNode.subscribe("/src_display_mode_on", 1, &VscProcess::receivedDisplayOnCommand, this);
   displaySrcOffSub = rosNode.subscribe("/src_display_mode_off", 1, &VscProcess::receivedDisplayOffCommand, this);
@@ -99,6 +103,7 @@ VscProcess::VscProcess() : myEStopState(0)
 
   // Init last time to now
   lastDataRx = ros::Time::now();
+  lastRemoteStatusRxTime = lastDataRx;
 
   // Clear all error counters
   memset(&errorCounts, 0, sizeof(errorCounts));
@@ -222,11 +227,13 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
     ROS_DEBUG("Received Heartbeat from VSC");
 
     HeartbeatMsgType* msgPtr = (HeartbeatMsgType*)recvMsg.msg.data;
+    latest_vsc_mode_ = msgPtr->VscMode ;
 
-    // Publish E-STOP Values
+    // Publish Values
     std_msgs::UInt32 estopValue;
     estopValue.data = msgPtr->EStopStatus;
     estopPub.publish(estopValue);
+
     bool estop_vehicle = (msgPtr->EStopStatus >> 2) & 0x01;
     bool estop_src = msgPtr->EStopStatus & 0x01;
     if (estop_vehicle && estop_src)
@@ -239,6 +246,7 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
     }
     else if (estop_src)
     {
+      //  estop_src && VSC searching state (mode==4), happen when SRC is off AND when Estop turned on
       ROS_WARN_THROTTLE(5.0, "Received ESTOP from the SRC!!! 0x%x", msgPtr->EStopStatus);
     }
     else if (msgPtr->EStopStatus > 0)
@@ -250,6 +258,31 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
   {
     ROS_WARN("RECEIVED HEARTBEAT WITH INVALID MESSAGE SIZE! Expected: 0x%x, Actual: 0x%x",
              (unsigned int)sizeof(HeartbeatMsgType),
+             recvMsg.msg.length);
+    retVal = 1;
+  }
+
+  return retVal;
+}
+
+int VscProcess::handleRemoteStatusMsg(VscMsgType& recvMsg)
+{
+  int retVal = 0;
+
+  if (recvMsg.msg.length == (sizeof(*srcHealthMsg)-sizeof(latest_vsc_mode_)))
+  {
+    ROS_DEBUG("Received Remote Status Msg from VSC");
+    lastRemoteStatusRxTime = ros::Time::now();
+
+    // Publish Status Values
+    srcHealthMsg = (SrcHealth*)recvMsg.msg.data;
+    srcHealthMsg->vsc_mode = latest_vsc_mode_;
+    srcHealthPub.publish(*srcHealthMsg);
+  }
+  else
+  {
+    ROS_WARN("RECEIVED REMOTE STATUS WITH INVALID MESSAGE SIZE! Expected: 0x%x, Actual: 0x%x",
+             (unsigned int)(sizeof(*srcHealthMsg)-sizeof(latest_vsc_mode_)),
              recvMsg.msg.length);
     retVal = 1;
   }
@@ -272,23 +305,24 @@ void VscProcess::readFromVehicle()
         {
           lastDataRx = ros::Time::now();
         }
-
         break;
       case MSG_VSC_JOYSTICK:
         if (joystickHandler->handleNewMsg(recvMsg) == 0)
         {
           lastDataRx = ros::Time::now();
         }
-
         break;
-
+      case MSG_VSC_REMOTE_STATUS:
+        if(handleRemoteStatusMsg(recvMsg) == 0)
+        {
+          lastDataRx = ros::Time::now();
+        }
+        break; 
       case MSG_VSC_NMEA_STRING:
         //			handleGpsMsg(&recvMsg);
-
         break;
       case MSG_USER_FEEDBACK:
         //			handleFeedbackMsg(&recvMsg);
-
         break;
       default:
         errorCounts.invalidRxMsgCount++;
@@ -313,5 +347,17 @@ void VscProcess::readFromVehicle()
       ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
     }
     // On fail, we expect a crash at the moment. This will mean that the node respawns
+  }
+  ros::Duration noRemoteStatusDuration = ros::Time::now() - lastRemoteStatusRxTime;
+  if (vscInterface != NULL && noRemoteStatusDuration > ros::Duration(2.0))
+  {
+    ROS_WARN_THROTTLE(.5, "No Remote Status Received in %i.%09i seconds", noRemoteStatusDuration.sec, noRemoteStatusDuration.nsec);
+    ROS_WARN_THROTTLE(.5, "Attempting to send the control rate msg to VSC...");
+    uint8_t enableMessage = 1;
+    uint16_t milliSecondInterval = 1000;
+    /* Enable Remote Status Messages */
+    vsc_send_control_msg_rate(vscInterface, MSG_VSC_REMOTE_STATUS, enableMessage, milliSecondInterval);
+    // reset rx time to allow time for VSC to send a message
+    lastRemoteStatusRxTime = ros::Time::now();   
   }
 }

@@ -284,6 +284,38 @@ int32_t vsc_get_button_value(uint8_t button) {
 }
 
 /**
+ * Configure which messages are output from the VSC, and how often.
+ *
+ * This function packages and sends the Control Message data to the VSC.
+ *
+ * @param vscInterface VSC Interface Structure.
+ * @param msgTypeToModify Which VSC message type to modify.
+ * @param enableMessage Whether or not the message is transmitted.
+ * @param interval Time between transmissions in milliseconds (20 to 2^16-1).
+ */
+void vsc_send_control_msg_rate(VscInterfaceType* vscInterface, uint8_t msgTypeToModify,  uint8_t enableMessage, uint16_t interval) {
+  VscMsgType feedbackMsg;
+  ControlMessageRateMsgType *msgPtr = (ControlMessageRateMsgType*) feedbackMsg.msg.data;
+  memset(feedbackMsg.msg.data, 0, sizeof(feedbackMsg.msg.data));
+
+  /* Set message fields */
+  msgPtr->msgTypeToModify = msgTypeToModify;
+  msgPtr->enableMessage = enableMessage;
+  msgPtr->interval = interval;
+
+  /* Fill Message */
+  feedbackMsg.msg.msgType = MSG_USER_CONTROL_MSG_RATE;
+  feedbackMsg.msg.length = sizeof(ControlMessageRateMsgType);
+  memcpy(feedbackMsg.msg.data, msgPtr, feedbackMsg.msg.length);
+
+  /* Send Message */
+  if (vsc_send_msg(vscInterface, &feedbackMsg) < 0) {
+    // Error print commented out due to spam
+    fprintf(stderr, "vsc_send_control_msg_rate: Send Message Failure (Errno: %i)\n", errno);
+  }
+}
+
+/**
  * Send user feedback message to VSC
  *
  * This function packages and sends the user feedback data to the VSC.

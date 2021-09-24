@@ -1,3 +1,9 @@
+ros-melodic-hri-safe-remote-control-system (0.2.0-bionic11) bionic; urgency=medium
+
+  * Adding SrcHealth msg and publishing general SRC battery and connection health.
+
+ -- Jonathan Sanabria <jonathan@greenzie.com>  Thu, 23 Sep 2021 16:39:41 -0400
+
 ros-melodic-hri-safe-remote-control-system (0.2.0-bionic10) bionic; urgency=medium
 
   * Update VscProcess to distinguish between Estop sources when logging. 

@@ -27,6 +27,7 @@ add_message_files(
         DIRECTORY msg
         FILES
         SrcDisplay.msg
+        SrcHealth.msg
 )
 
 generate_messages(

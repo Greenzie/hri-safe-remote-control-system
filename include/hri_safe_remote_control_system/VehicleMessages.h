@@ -59,6 +59,7 @@ enum VSC_STATES_TYPE
 
 /** VSC_MESSAGE_TYPE
  * 	The enumerated values of VSC messages.
+ * https://hriwiki.atlassian.net/wiki/spaces/DOC/pages/44826637/SCM+Interface#SCMInterface-RemoteStatusMessage%3A0x22(FromVSC)
  */
 enum VSC_MESSAGE_TYPE
 {
@@ -66,6 +67,8 @@ enum VSC_MESSAGE_TYPE
   MSG_VSC_NMEA_STRING = 0x12,
   MSG_VSC_HEARTBEAT = 0x20,
   MSG_USER_HEARTBEAT = 0x21,
+  MSG_VSC_REMOTE_STATUS = 0x22,
+  MSG_USER_CONTROL_MSG_RATE = 0x23,
   MSG_USER_FEEDBACK = 0x30,
   MSG_USER_FEEDBACK_STRING = 0x31
 };
@@ -221,6 +224,17 @@ typedef struct
   uint8_t source;
   uint8_t data[VSC_MAX_MESSAGE_LENGTH - 1];
 } GpsMsgType;
+
+/** ControlMessageRateMsgType
+ * 	The Structure for VSC configuring which messages are output by the VSC and how often.
+ *  Note : Configurations are persistent and only need to be set once.
+ */
+typedef struct
+{
+  uint8_t msgTypeToModify;
+  uint8_t enableMessage;   /* Whether or not the message is transmitted. */
+  uint16_t interval;       /* Time between transmissions in milliseconds (20 to 2^16-1) */
+} ControlMessageRateMsgType;
 
 /** UserFeedbackMsgType
  * 	The Structure for the packed key value pair that is used to transmit the user
