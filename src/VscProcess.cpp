@@ -59,7 +59,7 @@ VscProcess::VscProcess() : myEStopState(0)
   }
   else
   {
-    ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);    
+    ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
   }
 
   // Attempt to Set priority
