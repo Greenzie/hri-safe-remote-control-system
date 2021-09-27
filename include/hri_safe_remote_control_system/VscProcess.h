@@ -82,6 +82,7 @@ private:
   
   // cached
   uint8_t latest_vsc_mode_{ 0 };
+  uint8_t prev_src_charging_state_{ 0 };
 
   // ROS
   ros::NodeHandle rosNode;

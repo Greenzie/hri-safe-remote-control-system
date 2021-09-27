@@ -278,6 +278,12 @@ int VscProcess::handleRemoteStatusMsg(VscMsgType& recvMsg)
     srcHealthMsg = (SrcHealth*)recvMsg.msg.data;
     srcHealthMsg->vsc_mode = latest_vsc_mode_;
     srcHealthPub.publish(*srcHealthMsg);
+
+    if (srcHealthMsg->src_battery_charging != prev_src_charging_state_)
+    {
+      vsc_send_user_feedback(vscInterface, VSC_USER_BOTH_MOTOR_INTENSITY, MOTOR_CONTROL_INTENSITY_HIGH);
+    }
+    prev_src_charging_state_ = srcHealthMsg->src_battery_charging;
   }
   else
   {
