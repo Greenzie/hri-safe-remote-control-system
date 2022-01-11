@@ -1,12 +1,12 @@
-Source: ros-melodic-hri-safe-remote-control-system
+Source: ros-noetic-hri-safe-remote-control-system
 Section: misc
 Priority: optional
 Maintainer: Greenzie Developers <developers@greenzie.com>
-Build-Depends: debhelper (>= 9.0.0), ros-melodic-catkin, ros-melodic-genmsg, ros-melodic-message-generation, ros-melodic-message-runtime, ros-melodic-roscpp, ros-melodic-sensor-msgs, ros-melodic-std-msgs
+Build-Depends: debhelper (>= 9.0.0), ros-noetic-catkin, ros-noetic-genmsg, ros-noetic-message-generation, ros-noetic-message-runtime, ros-noetic-roscpp, ros-noetic-sensor-msgs, ros-noetic-std-msgs
 Homepage: 
 Standards-Version: 3.9.2
 
-Package: ros-melodic-hri-safe-remote-control-system
+Package: ros-noetic-hri-safe-remote-control-system
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ros-melodic-genmsg, ros-melodic-message-runtime, ros-melodic-roscpp, ros-melodic-sensor-msgs, ros-melodic-std-msgs
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-noetic-genmsg, ros-noetic-message-runtime, ros-noetic-roscpp, ros-noetic-sensor-msgs, ros-noetic-std-msgs
 Description: HRI Library for Serial Communication in ROS

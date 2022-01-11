@@ -1,3 +1,9 @@
+ros-noetic-hri-safe-remote-control-system (0.2.0-focal1) focal; urgency=medium
+
+  * Porting Code to Noetic
+
+ -- Kristian Kabbabe <kristian@greenzie.com>  Tue, 11 Jan 2022 10:39:41 -0500
+
 ros-melodic-hri-safe-remote-control-system (0.2.0-bionic11) bionic; urgency=medium
 
   * Adding SrcHealth msg and publishing general SRC battery and connection health.
