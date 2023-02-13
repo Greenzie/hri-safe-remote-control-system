@@ -22,5 +22,6 @@
   <exec_depend>sensor_msgs</exec_depend>
   <depend>genmsg</depend>
   <depend>message_runtime</depend>
+  <depend>bond_core</depend>
 </package>
 
