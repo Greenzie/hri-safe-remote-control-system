@@ -56,11 +56,11 @@ VscProcess::VscProcess() : myEStopState(0)
   bond::Bond bond("/vsc_bond", "FortVSCSettingGrab");
   if (nh.getParam("bond_form_time", bond_form_time_))
   {
-    ROS_INFO("Bond Form Time updated to:  %i", bond_form_time_);
+    ROS_INFO("Bond Form Time updated to:  %d", bond_form_time_);
   }
   if (nh.getParam("bond_break_time", bond_break_time_))
   {
-    ROS_INFO("Bond Break Time updated to:  %i", bond_break_time_);
+    ROS_INFO("Bond Break Time updated to:  %d", bond_break_time_);
   }
   bond.start();
   if (!bond.waitUntilFormed(ros::Duration(bond_wait_time_)))
