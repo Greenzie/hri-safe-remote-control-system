@@ -18,6 +18,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
 #include "std_msgs/UInt32.h"
+#include <bondcpp/bond.h>
 
 /**
  * System Includes
@@ -49,6 +50,19 @@ VscProcess::VscProcess() : myEStopState(0)
   if (nh.getParam("serial_speed", serial_speed_))
   {
     ROS_INFO("Serial Port Speed updated to:  %i", serial_speed_);
+  }
+
+  /* Bond with VSC Setting Grab Script and Wait for Completion*/
+  bond::Bond bond("/vsc_bond", "FortVSCSettingGrab");
+  bond.start();
+  if (!bond.waitUntilFormed(ros::Duration(5.0)))
+  {
+    ROS_ERROR("Bond could not be formed to the VSC Settings Grabber!");
+  }
+  else
+  {
+    bond.waitUntilBroken(ros::Duration(30.0));
+    ROS_INFO("VSC Settings Grabber has broken the bond\n");
   }
 
   /* Open VSC Interface */
