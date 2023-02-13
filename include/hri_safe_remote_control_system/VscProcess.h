@@ -79,6 +79,8 @@ private:
   ErrorCounterType errorCounts;
   std::string serial_port_ = "/dev/ttyACM0";
   int serial_speed_ = 115200;
+  double bond_form_time_ = 30.0;
+  double bond_break_time_ = 30.0;
   
   // cached
   uint8_t latest_vsc_mode_{ 0 };

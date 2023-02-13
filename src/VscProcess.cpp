@@ -54,14 +54,22 @@ VscProcess::VscProcess() : myEStopState(0)
 
   /* Bond with VSC Setting Grab Script and Wait for Completion*/
   bond::Bond bond("/vsc_bond", "FortVSCSettingGrab");
+  if (nh.getParam("bond_form_time", bond_form_time_))
+  {
+    ROS_INFO("Bond Form Time updated to:  %i", bond_form_time_);
+  }
+  if (nh.getParam("bond_break_time", bond_break_time_))
+  {
+    ROS_INFO("Bond Break Time updated to:  %i", bond_break_time_);
+  }
   bond.start();
-  if (!bond.waitUntilFormed(ros::Duration(5.0)))
+  if (!bond.waitUntilFormed(ros::Duration(bond_wait_time_)))
   {
     ROS_ERROR("Bond could not be formed to the VSC Settings Grabber!");
   }
   else
   {
-    bond.waitUntilBroken(ros::Duration(30.0));
+    bond.waitUntilBroken(ros::Duration(bond_break_time_));
     ROS_INFO("VSC Settings Grabber has broken the bond\n");
   }
 
