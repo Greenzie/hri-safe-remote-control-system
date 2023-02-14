@@ -8,6 +8,7 @@ find_package(catkin REQUIRED
         genmsg
         message_runtime
         message_generation
+        bond
         bondcpp
 )
 

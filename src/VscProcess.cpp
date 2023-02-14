@@ -62,8 +62,17 @@ VscProcess::VscProcess() : myEStopState(0)
   {
     ROS_INFO("Bond Break Time updated to:  %f", bond_break_time_);
   }
+
   bond.start();
-  if (!bond.waitUntilFormed(ros::Duration(bond_form_time_)))
+  ros::spinOnce();
+  int bond_form_ticker = 0;
+  while (!bond.waitUntilFormed(ros::Duration(0.1)) and bond_form_ticker < bond_form_time_)
+  {
+    bond_form_ticker += 0.1;
+    ros::spinOnce();
+  }
+
+  if (bond_form_ticker >= bond_form_time_)
   {
     ROS_ERROR("Bond could not be formed to the VSC Settings Grabber!");
   }
