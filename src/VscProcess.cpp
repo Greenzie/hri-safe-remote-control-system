@@ -53,7 +53,7 @@ VscProcess::VscProcess() : myEStopState(0)
   }
 
   /* Bond with VSC Setting Grab Script and Wait for Completion*/
-  bond::Bond bond("/vsc_bond", "FortVSCSettingGrab");
+  bond::Bond bond("/vsc/bond", "FortVSCSettingGrab");
   if (nh.getParam("bond_form_time", bond_form_time_))
   {
     ROS_INFO("Bond Form Time updated to:  %f", bond_form_time_);
