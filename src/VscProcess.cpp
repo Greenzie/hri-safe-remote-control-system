@@ -78,6 +78,8 @@ VscProcess::VscProcess() : myEStopState(0)
   }
   else
   {
+    ROS_INFO("Bond has been formed to the VSC Settings Grabber. Waiting for bond break...");
+    
     int bond_break_ticker = 0;
     while (!bond.waitUntilBroken(ros::Duration(0.1)) and bond_break_ticker < bond_break_time_)
     {
@@ -89,7 +91,10 @@ VscProcess::VscProcess() : myEStopState(0)
     {
       ROS_ERROR("Bond was not broken in time to the VSC Settings Grabber!");
     }
-    ROS_INFO("VSC Settings Grabber has broken the bond\n");
+    else
+    {
+      ROS_INFO("The bond has been broken to VSC Settings Grabber. Continuing node execution...\n");
+    }
   }
 
   /* Open VSC Interface */
