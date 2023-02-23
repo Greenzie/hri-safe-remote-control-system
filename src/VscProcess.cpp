@@ -78,7 +78,17 @@ VscProcess::VscProcess() : myEStopState(0)
   }
   else
   {
-    bond.waitUntilBroken(ros::Duration(bond_break_time_));
+    int bond_break_ticker = 0;
+    while (!bond.waitUntilBroken(ros::Duration(0.1)) and bond_break_ticker < bond_break_time_)
+    {
+      bond_break_ticker += 0.1;
+      ros::spinOnce();
+    }
+
+    if (bond_break_ticker >= bond_break_time_)
+    {
+      ROS_ERROR("Bond was not broken in time to the VSC Settings Grabber!");
+    }
     ROS_INFO("VSC Settings Grabber has broken the bond\n");
   }
 
