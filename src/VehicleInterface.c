@@ -190,7 +190,7 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 			} else {
 
 				/* Calculate Fletchers Checksum verify */
-				ROS_INFO(msgPtr->msg.buffer)
+				ROS_INFO(msgPtr->msg.buffer);
 				uint16_t checksum = checksum_16((uint8_t*) msgPtr->msg.buffer,
 						msgPtr->msg.length + VSC_HEADER_OVERHEAD);
 				if ((msgPtr->msg.buffer[msgPtr->msg.length + VSC_HEADER_OVERHEAD]
