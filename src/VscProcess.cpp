@@ -383,7 +383,7 @@ void VscProcess::readFromVehicle()
     std::stringstream ss;
     for (int i = 0; i < recvMsg.msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
     {
-      ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
+      ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
     }
 
     ROS_INFO("Received Message: %s", ss.str().c_str());
