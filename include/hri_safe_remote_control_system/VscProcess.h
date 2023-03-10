@@ -102,7 +102,7 @@ private:
   // ROS
   ros::NodeHandle rosNode;
   ros::Timer mainLoopTimer;
-  ros::ServiceServer estopServ, keyValueServ, keyStringServ;
+  ros::ServiceServer estopServ, keyValueServ, keyStringServ, vscSettingServ;
   ros::Publisher estopPub;
   ros::Publisher srcHealthPub;
   ros::Subscriber vibrateSrcSub;

@@ -111,7 +111,7 @@ VscProcess::VscProcess() : myEStopState(0)
   keyValueServ = rosNode.advertiseService("safety/service/key_value", &VscProcess::KeyValue, this);
   keyStringServ = rosNode.advertiseService("safety/service/key_string", &VscProcess::KeyString, this);
 
-  ros::ServiceServer service = rosNode.advertiseService("vsc/settings", &VscProcess::vscSettingsSrv, this);
+  vscSettingServ = rosNode.advertiseService("vsc/settings", &VscProcess::vscSettingsSrv, this);
 
   // Publish Emergency Stop Status
   estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
