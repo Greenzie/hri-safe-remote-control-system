@@ -335,9 +335,15 @@ int VscProcess::handleRemoteStatusMsg(VscMsgType& recvMsg)
 int VscProcess::handleGetSettingInt(VscMsgType& recvMsg)
 {
   int retVal = 0;
-
   if (recvMsg.msg.length == (sizeof(uint8_t) + sizeof(int32_t)))
   {
+    std::stringstream ss;
+    for (size_t i = 0; i < recvMsg.msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
+    {
+        ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
+    }
+    ROS_INFO("Received Raw Message: %s", ss.str().c_str());
+
     if (recvMsg.msg.data[0] == VSC_SETUP_KEY_RADIO_POWER_LEVEL)
     {
       radio_power_level = recvMsg.msg.data[1] + 
@@ -366,6 +372,13 @@ int VscProcess::handleGetSettingString(VscMsgType& recvMsg)
 
   if (recvMsg.msg.length == (sizeof(uint8_t) + VSC_SETTING_STRING_LENGTH))
   {
+    std::stringstream ss;
+    for (size_t i = 0; i < recvMsg.msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
+    {
+        ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
+    }
+    ROS_INFO("Received Raw Message: %s", ss.str().c_str());
+
     if (recvMsg.msg.data[0] == VSC_SETUP_KEY_SERIAL)
     {
       serial = std::string(recvMsg.msg.data[1], VSC_SETTING_SERIAL_LENGTH);
@@ -425,6 +438,9 @@ void VscProcess::readFromVehicle()
         break;
       case MSG_USER_FEEDBACK:
         //			handleFeedbackMsg(&recvMsg);
+        break;
+      case MSG_SETUP_KEY_INT_2:
+        //			handleGetSettingInt2(&recvMsg);
         break;
       case MSG_SETUP_KEY_INT_1:
         ROS_INFO("Received MSG_SETUP_KEY_INT_1");
