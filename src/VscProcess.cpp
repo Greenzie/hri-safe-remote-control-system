@@ -353,10 +353,7 @@ int VscProcess::handleGetSettingInt(VscMsgType& recvMsg)
       }
       ROS_INFO("Raw Data: %s", ss.str().c_str());
       
-      radio_power_level = recvMsg.msg.data[1] + 
-                          recvMsg.msg.data[2] << 8 + 
-                          recvMsg.msg.data[3] << 16 + 
-                          recvMsg.msg.data[4] << 24;
+      radio_power_level = recvMsg.msg.data[1] | (recvMsg.msg.data[2] << 8) | (recvMsg.msg.data[3] << 16) | (recvMsg.msg.data[4] << 24);
 
       have_radio_power_level = true;
       ROS_INFO("Acquired VSC Radio Power Level");
@@ -388,14 +385,14 @@ int VscProcess::handleGetSettingString(VscMsgType& recvMsg)
 
     if (recvMsg.msg.data[0] == VSC_SETUP_KEY_SERIAL)
     {
-      serial = std::string(recvMsg.msg.data[1], VSC_SETTING_SERIAL_LENGTH);
+      serial.assign(reinterpret_cast<const char*>(recvMsg.msg.data+1), VSC_SETTING_SERIAL_LENGTH);
 
       have_serial = true;
       ROS_INFO("Acquired VSC Serial Number");
     }
     else if (recvMsg.msg.data[0] == VSC_SETUP_KEY_FIRMWARE)
     {
-      firmware = std::string(recvMsg.msg.data[1], VSC_SETTING_FIRMWARE_LENGTH);
+      firmware.assign(reinterpret_cast<const char*>(recvMsg.msg.data+1), VSC_SETTING_FIRMWARE_LENGTH);
 
       have_firmware = true;
       ROS_INFO("Acquired VSC Firmware Version");
