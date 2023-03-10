@@ -346,6 +346,13 @@ int VscProcess::handleGetSettingInt(VscMsgType& recvMsg)
 
     if (recvMsg.msg.data[0] == VSC_SETUP_KEY_RADIO_POWER_LEVEL)
     {
+      std::stringstream ss;
+      for (size_t i = 0; i < recvMsg.msg.length; i++)
+      {
+          ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.data[i]);
+      }
+      ROS_INFO("Raw Data: %s", ss.str().c_str());
+      
       radio_power_level = recvMsg.msg.data[1] + 
                           recvMsg.msg.data[2] << 8 + 
                           recvMsg.msg.data[3] << 16 + 
