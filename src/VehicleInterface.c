@@ -208,6 +208,8 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 							msgPtr->msg.buffer[msgPtr->msg.length
 									+ VSC_HEADER_OVERHEAD + 1], checksum & 0xff,
 							(checksum >> 8) & 0xff);
+							
+					retval = -2;
 				}
 				
 				/* Copy to output */

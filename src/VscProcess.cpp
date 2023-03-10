@@ -78,11 +78,17 @@ VscProcess::VscProcess() : myEStopState(0)
   }
 
   vsc_scm_target_set(vscInterface, 0);
+  ros::Duration(0.1).sleep();
   vsc_scm_target_get(vscInterface);
+  ros::Duration(0.1).sleep();
   vsc_setup_unlock(vscInterface);
+  ros::Duration(0.1).sleep();
   vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+  ros::Duration(0.1).sleep();
   vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_SERIAL);
+  ros::Duration(0.1).sleep();
   vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+  ros::Duration(0.1).sleep();
 
   // Create Message Handlers
   joystickHandler = new JoystickHandler();
@@ -377,17 +383,9 @@ void VscProcess::readFromVehicle()
   VscMsgType recvMsg;
 
   /* Read all messages */
-  while (vsc_read_next_msg(vscInterface, &recvMsg) > 0)
+  int readRetVal = vsc_read_next_msg(vscInterface, &recvMsg) > 0;
+  while (readRetVal > 0)
   {
-
-    std::stringstream ss;
-    for (int i = 0; i < recvMsg.msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
-    {
-      ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
-    }
-
-    ROS_INFO("Received Message: %s", ss.str().c_str());
-
     /* Read next Vsc Message */
     switch (recvMsg.msg.msgType)
     {
@@ -430,7 +428,17 @@ void VscProcess::readFromVehicle()
       default:
         errorCounts.invalidRxMsgCount++;
         break;
+
+      readRetVal = vsc_read_next_msg(vscInterface, &recvMsg) > 0;
     }
+    if (readRetVal == -2)
+    std::stringstream ss;
+    for (int i = 0; i < recvMsg.msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
+    {
+      ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
+    }
+
+    ROS_INFO("Received Message: %s", ss.str().c_str());
   }
 
   // Log warning when no data is received
