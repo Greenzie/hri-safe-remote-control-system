@@ -28,6 +28,8 @@
 #include "hri_safe_remote_control_system/SrcDisplay.h"
 #include "hri_safe_remote_control_system/SrcHealth.h"
 
+#include "hri_safe_remote_control_system/GetVscSettings.h"
+
 /**
  * HRI_COMMON Includes
  */
@@ -64,6 +66,8 @@ public:
   bool KeyValue(KeyValue::Request& req, KeyValue::Response& res);
   bool KeyString(KeyString::Request& req, KeyString::Response& res);
 
+  bool vscSettingsSrv(GetVscSettings::Request &req, GetVscSettings::Response &res);
+
   void receivedVibration(const std_msgs::Bool msg);
   void receivedDisplayOnCommand(const hri_safe_remote_control_system::SrcDisplay& msg);
   void receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg);
@@ -73,14 +77,24 @@ private:
   void readFromVehicle();
   int handleHeartbeatMsg(VscMsgType& recvMsg);
   int handleRemoteStatusMsg(VscMsgType& recvMsg);
+  int handleGetSettingInt(VscMsgType& recvMsg);
+  int handleGetSettingString(VscMsgType& recvMsg);
 
   // Local State
   uint32_t myEStopState;
   ErrorCounterType errorCounts;
   std::string serial_port_ = "/dev/ttyACM0";
   int serial_speed_ = 115200;
-  double bond_form_time_ = 30.0;
-  double bond_break_time_ = 30.0;
+
+  // Setting Grab Values
+  bool have_radio_power_level = false;
+  bool have_serial = false;
+  bool have_firmware = false;
+  bool srv_advertised = false;
+
+  int radio_power_level = -1;
+  std::string serial = "";
+  std::string firmware = "";
   
   // cached
   uint8_t latest_vsc_mode_{ 0 };

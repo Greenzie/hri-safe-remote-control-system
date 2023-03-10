@@ -44,6 +44,9 @@ extern "C" {
 #define VSC_MIN_MESSAGE_LENGTH (VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD)
 
 #define VSC_USER_FEEDBACK_STRING_LENGTH 20
+#define VSC_SETTING_STRING_LENGTH 20
+#define VSC_SETTING_SERIAL_LENGTH 15
+#define VSC_SETTING_FIRMWARE_LENGTH 5
 
 /** VSC_STATES_TYPE
  * 	The enumerated values of VSC states.
@@ -69,8 +72,37 @@ enum VSC_MESSAGE_TYPE
   MSG_USER_HEARTBEAT = 0x21,
   MSG_VSC_REMOTE_STATUS = 0x22,
   MSG_USER_CONTROL_MSG_RATE = 0x23,
+  MSG_VSC_RX_STATUS = 0x25,
+  MSG_VSC_RX_STATUS_DIAG = 0x26,
   MSG_USER_FEEDBACK = 0x30,
-  MSG_USER_FEEDBACK_STRING = 0x31
+  MSG_USER_FEEDBACK_STRING = 0x31,
+  MSG_USER_VALUE_UNUSED = 0x33,
+  MSG_NSC_HEARTBEAT = 0x40,
+  MSG_TIMESTAMP = 0x50,
+  MSG_FILE_TRANSFER_ACK_NACK = 0x90,
+  MSG_FILE_TRANSFER_DATA = 0x94,
+  MSG_FILE_TRANSFER_CRC = 0x97,
+  MSG_FILE_TRANSFER_FILE_LENGTH = 0x99,
+  MSG_SETUP_KEY_INT_2 = 0xa2,
+  MSG_SETUP_KEY_REQ = 0xa3,           // Used for Tx to VSC only.
+  MSG_SETUP_KEY_STRING_2 = 0xa4,
+  MSG_SETUP_KEY_STRING_PART = 0xa8,
+  MSG_SETUP_KEY_LONG_STRING = 0xa9,
+  MSG_SETUP_KEY_INT_1 = 0xaa,
+  MSG_SETUP_KEY_INT_1_REQ = 0xab,       // Used for Tx to VSC only.
+  MSG_SETUP_KEY_STRING_1 = 0xac,
+  MSG_SETUP_KEY_STRING_1_REQ = 0xad,  // Used for Tx to VSC only.
+  MSG_SETUP_UNLOCK = 0xae,            // Used for Tx to VSC only.
+  MSG_EVENT_LOG_SEEK_FIRST_ACK = 0xb2,
+  MSG_EVENT_LOG_ENTRY = 0xb4,
+  MSG_EVENT_LOG_CLEAR_ALL_ACK = 0xb6,
+  MSG_EVENT_LOG_CURRENT = 0xb7,
+  MSG_PACKET_LOSS = 0xd3,
+  MSG_PACKET_LOSS_EOF = 0xd4,
+  MSG_NSC_RSSI = 0xd5,
+  MSG_SCM_TARGET_SET_ACK = 0xf7,
+  MSG_SCM_TARGET_GET = 0xf8,          // Used for Tx to VSC only.
+  MSG_SCM_TARGET_SET = 0xf9           // Used for Tx to VSC only.
 };
 
 /** VSC_USER_FEEDBACK_KEY_TYPE
@@ -96,6 +128,21 @@ enum VSC_USER_FEEDBACK_KEY_TYPE
   VSC_USER_DISPLAY_ROW_4 = 93,
   VSC_USER_DISPLAY_MODE = 99,
 };
+
+/** VSC_SETUP_KEY_TYPE
+ *  The enumerated values of the available setup parameter keys.
+ */
+enum VSC_SETUP_KEY_TYPE
+{
+  VSC_SETUP_KEY_SERIAL = 1,
+  VSC_SETUP_KEY_RADIO_POWER_LEVEL = 103,
+  VSC_SETUP_KEY_FIRMWARE = 111
+};
+
+/** VSC_SETUP_UNLOCK_CODE
+ *  The code to unlock setup mode on the VSC.
+ */
+const uint16_t VSC_SETUP_UNLOCK_CODE = 0xc0de;
 
 /** VscMsgData
  * 	The union for data that is sent and received to the VSC.  This contains
@@ -255,6 +302,39 @@ typedef struct
   uint8_t key;
   char value[VSC_USER_FEEDBACK_STRING_LENGTH];
 } UserFeedbackStringMsgType;
+
+/** SCMTargetSetMsgType
+ * 	The Structure for the packed target id that is used to transmit the SCM Target
+ *  Set command to the VSC.
+ */
+typedef struct
+{
+  uint32_t target_id;
+} SCMTargetSetMsgType;
+
+
+/** SCMTargetGetMsgType
+ * 	The Structure for the the SCM Target Get command transmitted to the VSC.
+ */
+typedef struct
+{
+} SCMTargetGetMsgType;
+
+/** SetupUnlockMsgType
+ * 	The Structure to unlock tthe setup state on the VSC with the unlock code packed.
+ */
+typedef struct
+{
+  uint16_t code;
+} SetupUnlockMsgType;
+
+/** GetSettingMsgType
+ * 	The Structure to query a setting from the VSC with the key packed.
+ */
+typedef struct
+{
+  uint8_t key;
+} GetSettingMsgType;
 
 /** MOTOR_INTENSITY_TYPE
  * 	The enumerated values of the motor control intensities

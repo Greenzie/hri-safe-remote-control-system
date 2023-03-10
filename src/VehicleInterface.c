@@ -399,6 +399,126 @@ void vsc_send_heartbeat(VscInterfaceType* vscInterface, uint8_t EStopStatus) {
 
 }
 
+/** vsc_scm_target_set()
+ * @brief This function sends a SCM Target Set Command to the VSC to prepare for a settings grab.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ * @param target_id The identifier for the target, 0 for local.
+ */
+void vsc_scm_target_set(VscInterfaceType* vscInterface, int target_id)
+{
+	VscMsgType scmTargetSetMsg;
+	SCMTargetSetMsgType *msgPtr = (SCMTargetSetMsgType*) scmTargetSetMsg.msg.data;
+
+	/* Fill Message */
+	scmTargetSetMsg.msg.msgType = MSG_SCM_TARGET_SET;
+	scmTargetSetMsg.msg.length = sizeof(SCMTargetSetMsgType);
+
+	/* Fill in the Target ID */
+	msgPtr->target_id = target_id;
+
+	/* Send Message */
+	if (vsc_send_msg(vscInterface, &scmTargetSetMsg) < 0) {
+    // Error print commented out due to spam
+	  //fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+	}
+}
+
+/** vsc_scm_target_get()
+ * @brief This function sends a SCM Target Get Command to the VSC to prepare for a settings grab.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ */
+void vsc_scm_target_get(VscInterfaceType* vscInterface)
+{
+	VscMsgType scmTargetGetMsg;
+	SCMTargetGetMsgType *msgPtr = (SCMTargetGetMsgType*) scmTargetGetMsg.msg.data;
+
+	/* Fill Message */
+	scmTargetGetMsg.msg.msgType = MSG_SCM_TARGET_GET;
+	scmTargetGetMsg.msg.length = sizeof(SCMTargetGetMsgType);
+
+	/* Send Message */
+	if (vsc_send_msg(vscInterface, &scmTargetGetMsg) < 0) {
+    // Error print commented out due to spam
+	  //fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+	}
+}
+
+/** vsc_setup_unlock()
+ * @brief This function unlocks Setup mode on the VSC to prepare for a settings grab.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ */
+void vsc_setup_unlock(VscInterfaceType* vscInterface)
+{
+	VscMsgType setupUnlockMsg;
+	SetupUnlockMsgType *msgPtr = (SetupUnlockMsgType*) setupUnlockMsg.msg.data;
+
+	/* Fill Message */
+	setupUnlockMsg.msg.msgType = MSG_SETUP_UNLOCK;
+	setupUnlockMsg.msg.length = sizeof(SetupUnlockMsgType);
+	
+	/* Fill in the Target ID */
+	msgPtr->code = VSC_SETUP_UNLOCK_CODE;
+
+	/* Send Message */
+	if (vsc_send_msg(vscInterface, &setupUnlockMsg) < 0) {
+    // Error print commented out due to spam
+	  //fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+	}
+}
+
+/** vsc_get_setting_int()
+ * @brief This function queries the VSC for a setting with the key, in integer format.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ * @param key The identifier for the setting to be queried.
+ */
+void vsc_get_setting_int(VscInterfaceType* vscInterface, uint8_t key)
+{
+	VscMsgType getSettingMsg;
+	GetSettingMsgType *msgPtr = (GetSettingMsgType*) getSettingMsg.msg.data;
+
+	/* Fill Message */
+	getSettingMsg.msg.msgType = MSG_SETUP_KEY_INT_1_REQ;
+	getSettingMsg.msg.length = sizeof(SetupUnlockMsgType);
+	
+	/* Fill in the Target ID */
+	msgPtr->key = key;
+
+	/* Send Message */
+	if (vsc_send_msg(vscInterface, &getSettingMsg) < 0) {
+    // Error print commented out due to spam
+	  //fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+	}
+}
+
+/** vsc_get_setting_string()
+ * @brief This function queries the VSC for a setting with the key, in string format.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ * @param key The identifier for the setting to be queried.
+ */
+void vsc_get_setting_string(VscInterfaceType* vscInterface, uint8_t key)
+{
+	VscMsgType getSettingMsg;
+	GetSettingMsgType *msgPtr = (GetSettingMsgType*) getSettingMsg.msg.data;
+
+	/* Fill Message */
+	getSettingMsg.msg.msgType = MSG_SETUP_KEY_STRING_1_REQ;
+	getSettingMsg.msg.length = sizeof(SetupUnlockMsgType);
+	
+	/* Fill in the Target ID */
+	msgPtr->key = key;
+
+	/* Send Message */
+	if (vsc_send_msg(vscInterface, &getSettingMsg) < 0) {
+    // Error print commented out due to spam
+	  //fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+	}
+}
+
 /**
  * Get Serial Interface File Descriptor
  *

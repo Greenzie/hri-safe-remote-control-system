@@ -8,8 +8,6 @@ find_package(catkin REQUIRED
         genmsg
         message_runtime
         message_generation
-        bond
-        bondcpp
 )
 
 include_directories(
@@ -23,6 +21,7 @@ add_service_files(
         EmergencyStop.srv
         KeyString.srv
         KeyValue.srv
+        GetVscSettings.srv
 )
 
 add_message_files(
