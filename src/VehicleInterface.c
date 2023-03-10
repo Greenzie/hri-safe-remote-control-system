@@ -197,9 +197,15 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 						&& (msgPtr->msg.buffer[msgPtr->msg.length
 								+ VSC_HEADER_OVERHEAD + 1]
 								== ((checksum >> 8) & 0xff))) {
-									
-					retval = 1;
 
+					/* Copy to output */
+					memcpy((void*) newMsg, (void*) msgPtr, expectedLength);
+
+					/* Update indices */
+					vscInterface->back += expectedLength;
+
+					done = true;
+					retval = 1;
 				} else {
 					fprintf(stderr,
 							"VscInterface: Invalid checksum 0x%02x 0x%02x received when expecting 0x%02x 0x%02x\n",
@@ -208,17 +214,14 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 							msgPtr->msg.buffer[msgPtr->msg.length
 									+ VSC_HEADER_OVERHEAD + 1], checksum & 0xff,
 							(checksum >> 8) & 0xff);
-							
-					retval = -2;
-				}
-				
-				/* Copy to output */
-				memcpy((void*) newMsg, (void*) msgPtr, expectedLength);
+					vscInterface->back += expectedLength;
 
-				/* Update indices */
-				vscInterface->back += expectedLength;
-				
-				done = true;
+					for (int i = 0; i < msgPtr->msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
+					{
+						printf("\\x%02x", msgPtr->msg.buffer[i]);
+					}
+					printf("\n");
+				}
 			}
 		} else {
 			/* Search for start of message. */
