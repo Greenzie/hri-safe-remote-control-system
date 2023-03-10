@@ -29,6 +29,8 @@
 #include "hri_safe_remote_control_system/VehicleInterface.h"
 #include "hri_safe_remote_control_system/SerialInterface.h"
 
+#include "ros/ros.h"
+
 /**
  * Calculate the Fletcher 16 Checksum
  *
