@@ -326,6 +326,7 @@ int VscProcess::handleGetSettingInt(VscMsgType& recvMsg)
                           recvMsg.msg.data[4] << 24;
 
       have_radio_power_level = true;
+      ROS_INFO("Acquired VSC Radio Power Level");
     }
   }
   else
@@ -350,12 +351,14 @@ int VscProcess::handleGetSettingString(VscMsgType& recvMsg)
       serial = std::string(recvMsg.msg.data[1], VSC_SETTING_SERIAL_LENGTH);
 
       have_serial = true;
+      ROS_INFO("Acquired VSC Serial Number");
     }
     else if (recvMsg.msg.data[0] == VSC_SETUP_KEY_FIRMWARE)
     {
       firmware = std::string(recvMsg.msg.data[1], VSC_SETTING_FIRMWARE_LENGTH);
 
       have_firmware = true;
+      ROS_INFO("Acquired VSC Firmware Version");
     }
   }
   else
