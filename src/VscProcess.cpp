@@ -254,6 +254,7 @@ void VscProcess::processOneLoop(const ros::TimerEvent&)
   {
     ROS_INFO("Settings Grabbed from VSC, advertising service..");
     ros::ServiceServer service = rosNode.advertiseService("/vsc/settings", &VscProcess::vscSettingsSrv, this);
+    ros::spinOnce();
     srv_advertised = true;
   }
 }
