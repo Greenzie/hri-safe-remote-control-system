@@ -127,6 +127,14 @@ int vsc_send_msg(VscInterfaceType* vscInterface, VscMsgType *sendMsg) {
 	sendMsg->msg.buffer[sendMsg->msg.length + VSC_HEADER_OVERHEAD + 1] =
 			(checksum >> 8) & 0xff;
 
+	/* Print Message for Diagnostic*/
+	printf("Sent Message: ");
+	for (int i = 0; i < sendMsg->msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
+	{
+		printf("\\x%02x", sendMsg->msg.buffer[i]);
+	}
+	printf("\n");
+
 	/* Send message over VSC connection. */
 	retval = write_to_serial(vscInterface->fd, (void*) sendMsg->msg.buffer,
 			sendMsg->msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD);
