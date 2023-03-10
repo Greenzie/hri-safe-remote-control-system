@@ -489,6 +489,35 @@ void vsc_setup_unlock(VscInterfaceType* vscInterface)
 	}
 }
 
+/** vsc_get_setting()
+ * @brief This function queries the VSC for a setting with the key.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ * @param key The identifier for the setting to be queried.
+ */
+void vsc_get_setting(VscInterfaceType* vscInterface, uint8_t key)
+{
+	VscMsgType getSettingMsg;
+	GetSettingMsgType *msgPtr = (GetSettingMsgType*) getSettingMsg.msg.data;
+
+	/* Fill Message */
+	getSettingMsg.msg.msgType = MSG_SETUP_KEY_REQ;
+	getSettingMsg.msg.length = sizeof(SetupUnlockMsgType);
+	
+	/* Fill in the Target ID */
+	msgPtr->key = key;
+
+	/* Send Message */
+	if (vsc_send_msg(vscInterface, &getSettingMsg) < 0) {
+    // Error print commented out due to spam
+	  fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+	}
+	else
+	{
+		printf("GET SETTING %d\n", msgPtr->key);
+	}
+}
+
 /** vsc_get_setting_int()
  * @brief This function queries the VSC for a setting with the key, in integer format.
  * 

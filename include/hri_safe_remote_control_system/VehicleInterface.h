@@ -178,6 +178,14 @@ void vsc_scm_target_get(VscInterfaceType* vscInterface);
  */
 void vsc_setup_unlock(VscInterfaceType* vscInterface);
 
+/** vsc_get_setting()
+ * @brief This function queries the VSC for a setting with the key.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ * @param key The identifier for the setting to be queried.
+ */
+void vsc_get_setting(VscInterfaceType* vscInterface, uint8_t key);
+
 /** vsc_get_setting_int()
  * @brief This function queries the VSC for a setting with the key, in integer format.
  * 

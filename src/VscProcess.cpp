@@ -78,17 +78,28 @@ VscProcess::VscProcess() : myEStopState(0)
   }
 
   vsc_scm_target_set(vscInterface, 0);
-  ros::Duration(0.1).sleep();
   vsc_scm_target_get(vscInterface);
+
   ros::Duration(0.1).sleep();
+
   vsc_setup_unlock(vscInterface);
+  vsc_get_setting(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+  vsc_get_setting(vscInterface, VSC_SETUP_KEY_SERIAL);
+  vsc_get_setting(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+  
   ros::Duration(0.1).sleep();
+
+  vsc_setup_unlock(vscInterface);
   vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_SERIAL);
+  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+  
   ros::Duration(0.1).sleep();
+
+  vsc_setup_unlock(vscInterface);
+  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
   vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_SERIAL);
-  ros::Duration(0.1).sleep();
   vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_FIRMWARE);
-  ros::Duration(0.1).sleep();
 
   // Create Message Handlers
   joystickHandler = new JoystickHandler();
@@ -241,6 +252,7 @@ void VscProcess::processOneLoop(const ros::TimerEvent&)
 
   if (have_firmware && have_radio_power_level && have_firmware && !srv_advertised)
   {
+    ROS_INFO("Settings Grabbed from VSC, advertising service..");
     ros::ServiceServer service = rosNode.advertiseService("/vsc/settings", &VscProcess::vscSettingsSrv, this);
     srv_advertised = true;
   }
@@ -427,7 +439,7 @@ void VscProcess::readFromVehicle()
         }
         break;
       default:
-        ROS_WARN("Received Invalid Message!");
+        ROS_WARN("Received Invalid Message of type: %02x", recvMsg.msg.msgType);
         errorCounts.invalidRxMsgCount++;
         break;
     }
