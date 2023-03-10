@@ -383,8 +383,7 @@ void VscProcess::readFromVehicle()
   VscMsgType recvMsg;
 
   /* Read all messages */
-  int readRetVal = vsc_read_next_msg(vscInterface, &recvMsg) > 0;
-  while (readRetVal > 0)
+  while (vsc_read_next_msg(vscInterface, &recvMsg) > 0)
   {
     /* Read next Vsc Message */
     switch (recvMsg.msg.msgType)
@@ -414,33 +413,23 @@ void VscProcess::readFromVehicle()
         //			handleFeedbackMsg(&recvMsg);
         break;
       case MSG_SETUP_KEY_INT_1:
-        	if(handleGetSettingInt(recvMsg) == 0)
-          {
-            lastDataRx = ros::Time::now();
-          }
+        ROS_INFO("Received MSG_SETUP_KEY_INT_1");
+        if(handleGetSettingInt(recvMsg) == 0)
+        {
+          lastDataRx = ros::Time::now();
+        }
         break;
       case MSG_SETUP_KEY_STRING_1:
-        	if(handleGetSettingString(recvMsg) == 0)
-          {
-            lastDataRx = ros::Time::now();
-          }
+        ROS_INFO("Received MSG_SETUP_KEY_STRING_1");
+        if(handleGetSettingString(recvMsg) == 0)
+        {
+          lastDataRx = ros::Time::now();
+        }
         break;
       default:
+        ROS_WARN("Received Invalid Message!");
         errorCounts.invalidRxMsgCount++;
         break;
-
-      readRetVal = vsc_read_next_msg(vscInterface, &recvMsg) > 0;
-    }
-
-    if (readRetVal == -2)
-    {
-      std::stringstream ss;
-      for (int i = 0; i < recvMsg.msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
-      {
-        ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
-      }
-
-      ROS_INFO("Received Message: %s", ss.str().c_str());
     }
   }
 

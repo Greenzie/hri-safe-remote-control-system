@@ -199,6 +199,7 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 								== ((checksum >> 8) & 0xff))) {
 
 					/* Copy to output */
+					printf("Received Message of type\\x%02x\n", msgPtr->msg.buffer[2]);
 					memcpy((void*) newMsg, (void*) msgPtr, expectedLength);
 
 					/* Update indices */
@@ -214,13 +215,14 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 							msgPtr->msg.buffer[msgPtr->msg.length
 									+ VSC_HEADER_OVERHEAD + 1], checksum & 0xff,
 							(checksum >> 8) & 0xff);
-					vscInterface->back += expectedLength;
 
 					for (int i = 0; i < msgPtr->msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
 					{
 						printf("\\x%02x", msgPtr->msg.buffer[i]);
 					}
 					printf("\n");
+					
+					vscInterface->back += expectedLength;
 				}
 			}
 		} else {
