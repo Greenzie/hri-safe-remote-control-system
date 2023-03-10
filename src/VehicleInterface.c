@@ -128,12 +128,12 @@ int vsc_send_msg(VscInterfaceType* vscInterface, VscMsgType *sendMsg) {
 			(checksum >> 8) & 0xff;
 
 	/* Print Message for Diagnostic*/
-	printf("Sent Message: ");
-	for (int i = 0; i < sendMsg->msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
-	{
-		printf("\\x%02x", sendMsg->msg.buffer[i]);
-	}
-	printf("\n");
+	// printf("Sent Message: ");
+	// for (int i = 0; i < sendMsg->msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
+	// {
+	// 	printf("\\x%02x", sendMsg->msg.buffer[i]);
+	// }
+	// printf("\n");
 
 	/* Send message over VSC connection. */
 	retval = write_to_serial(vscInterface->fd, (void*) sendMsg->msg.buffer,
@@ -224,11 +224,11 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 									+ VSC_HEADER_OVERHEAD + 1], checksum & 0xff,
 							(checksum >> 8) & 0xff);
 
-					for (int i = 0; i < msgPtr->msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
-					{
-						printf("\\x%02x", msgPtr->msg.buffer[i]);
-					}
-					printf("\n");
+					// for (int i = 0; i < msgPtr->msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
+					// {
+					// 	printf("\\x%02x", msgPtr->msg.buffer[i]);
+					// }
+					// printf("\n");
 					
 					vscInterface->back += expectedLength;
 				}
@@ -436,11 +436,11 @@ void vsc_scm_target_set(VscInterfaceType* vscInterface, int target_id)
 	/* Send Message */
 	if (vsc_send_msg(vscInterface, &scmTargetSetMsg) < 0) {
     // Error print commented out due to spam
-	  fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+	  // fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
 	}
 	else
 	{
-		printf("SCM TARGET SET %d\n", msgPtr->target_id);
+		// printf("SCM TARGET SET %d\n", msgPtr->target_id);
 	}
 }
 
@@ -461,11 +461,11 @@ void vsc_scm_target_get(VscInterfaceType* vscInterface)
 	/* Send Message */
 	if (vsc_send_msg(vscInterface, &scmTargetGetMsg) < 0) {
     // Error print commented out due to spam
-	  fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+	  // fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
 	}
 	else
 	{
-		printf("SCM TARGET GET\n");
+		// printf("SCM TARGET GET\n");
 	}
 }
 
@@ -489,11 +489,11 @@ void vsc_setup_unlock(VscInterfaceType* vscInterface)
 	/* Send Message */
 	if (vsc_send_msg(vscInterface, &setupUnlockMsg) < 0) {
     // Error print commented out due to spam
-	  fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+	  // fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
 	}
 	else
 	{
-		printf("SETUP UNLOCK %02x\n", msgPtr->code);
+		// printf("SETUP UNLOCK %02x\n", msgPtr->code);
 	}
 }
 
@@ -518,11 +518,11 @@ void vsc_get_setting(VscInterfaceType* vscInterface, uint8_t key)
 	/* Send Message */
 	if (vsc_send_msg(vscInterface, &getSettingMsg) < 0) {
     // Error print commented out due to spam
-	  fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+	  // fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
 	}
 	else
 	{
-		printf("GET SETTING %d\n", msgPtr->key);
+		// printf("GET SETTING %d\n", msgPtr->key);
 	}
 }
 
@@ -547,11 +547,11 @@ void vsc_get_setting_int(VscInterfaceType* vscInterface, uint8_t key)
 	/* Send Message */
 	if (vsc_send_msg(vscInterface, &getSettingMsg) < 0) {
     // Error print commented out due to spam
-	  fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
+	  // fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
 	}
 	else
 	{
-		printf("GET SETTING INT %d\n", msgPtr->key);
+		// printf("GET SETTING INT %d\n", msgPtr->key);
 	}
 }
 
