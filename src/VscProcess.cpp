@@ -431,14 +431,17 @@ void VscProcess::readFromVehicle()
 
       readRetVal = vsc_read_next_msg(vscInterface, &recvMsg) > 0;
     }
-    if (readRetVal == -2)
-    std::stringstream ss;
-    for (int i = 0; i < recvMsg.msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
-    {
-      ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
-    }
 
-    ROS_INFO("Received Message: %s", ss.str().c_str());
+    if (readRetVal == -2)
+    {
+      std::stringstream ss;
+      for (int i = 0; i < recvMsg.msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
+      {
+        ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
+      }
+
+      ROS_INFO("Received Message: %s", ss.str().c_str());
+    }
   }
 
   // Log warning when no data is received
