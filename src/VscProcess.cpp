@@ -379,6 +379,7 @@ void VscProcess::readFromVehicle()
   /* Read all messages */
   while (vsc_read_next_msg(vscInterface, &recvMsg) > 0)
   {
+    ROS_INFO("Received Message: %s", recvMsg.msg.buffer);
     /* Read next Vsc Message */
     switch (recvMsg.msg.msgType)
     {
