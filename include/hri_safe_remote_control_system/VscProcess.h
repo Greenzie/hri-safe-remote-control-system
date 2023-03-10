@@ -90,7 +90,7 @@ private:
   bool have_radio_power_level = false;
   bool have_serial = false;
   bool have_firmware = false;
-  bool srv_advertised = false;
+  bool srv_ready = false;
 
   int radio_power_level = -1;
   std::string serial = "";
