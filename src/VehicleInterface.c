@@ -29,8 +29,6 @@
 #include "hri_safe_remote_control_system/VehicleInterface.h"
 #include "hri_safe_remote_control_system/SerialInterface.h"
 
-#include "ros/ros.h"
-
 /**
  * Calculate the Fletcher 16 Checksum
  *
@@ -192,7 +190,6 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 			} else {
 
 				/* Calculate Fletchers Checksum verify */
-				ROS_INFO(msgPtr->msg.buffer);
 				uint16_t checksum = checksum_16((uint8_t*) msgPtr->msg.buffer,
 						msgPtr->msg.length + VSC_HEADER_OVERHEAD);
 				if ((msgPtr->msg.buffer[msgPtr->msg.length + VSC_HEADER_OVERHEAD]
@@ -200,15 +197,9 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 						&& (msgPtr->msg.buffer[msgPtr->msg.length
 								+ VSC_HEADER_OVERHEAD + 1]
 								== ((checksum >> 8) & 0xff))) {
-
-					/* Copy to output */
-					memcpy((void*) newMsg, (void*) msgPtr, expectedLength);
-
-					/* Update indices */
-					vscInterface->back += expectedLength;
-
-					done = true;
+									
 					retval = 1;
+
 				} else {
 					fprintf(stderr,
 							"VscInterface: Invalid checksum 0x%02x 0x%02x received when expecting 0x%02x 0x%02x\n",
@@ -217,8 +208,15 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 							msgPtr->msg.buffer[msgPtr->msg.length
 									+ VSC_HEADER_OVERHEAD + 1], checksum & 0xff,
 							(checksum >> 8) & 0xff);
-					vscInterface->back += expectedLength;
 				}
+				
+				/* Copy to output */
+				memcpy((void*) newMsg, (void*) msgPtr, expectedLength);
+
+				/* Update indices */
+				vscInterface->back += expectedLength;
+				
+				done = true;
 			}
 		} else {
 			/* Search for start of message. */
