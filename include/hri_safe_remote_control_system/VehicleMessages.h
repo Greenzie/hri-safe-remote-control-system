@@ -142,7 +142,7 @@ enum VSC_SETUP_KEY_TYPE
 /** VSC_SETUP_UNLOCK_CODE
  *  The code to unlock setup mode on the VSC.
  */
-const uint16_t VSC_SETUP_UNLOCK_CODE = 0xc0de;
+const uint16_t VSC_SETUP_UNLOCK_CODE = 0xdec0;
 
 /** VscMsgData
  * 	The union for data that is sent and received to the VSC.  This contains
