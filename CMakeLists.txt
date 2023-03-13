@@ -19,9 +19,9 @@ add_service_files(
         DIRECTORY srv
         FILES
         EmergencyStop.srv
+        GetVscSettings.srv
         KeyString.srv
         KeyValue.srv
-        GetVscSettings.srv
 )
 
 add_message_files(
