@@ -253,7 +253,7 @@ void VscProcess::processOneLoop(const ros::TimerEvent&)
   // Check for new data from vehicle in every state
   readFromVehicle();
 
-  if (have_firmware && have_radio_power_level && have_firmware && !srv_ready)
+  if (have_serial && have_radio_power_level && have_firmware && !srv_ready)
   {
     srv_ready = true;
     ROS_INFO("Settings Grabbed from VSC, service is ready..");
