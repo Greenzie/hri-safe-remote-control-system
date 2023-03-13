@@ -80,21 +80,21 @@ VscProcess::VscProcess() : myEStopState(0)
   vsc_scm_target_set(vscInterface, 0);
   vsc_scm_target_get(vscInterface);
 
-  ros::Duration(0.1).sleep();
+  // ros::Duration(0.1).sleep();
 
   vsc_setup_unlock(vscInterface);
   vsc_get_setting(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
   vsc_get_setting(vscInterface, VSC_SETUP_KEY_SERIAL);
   vsc_get_setting(vscInterface, VSC_SETUP_KEY_FIRMWARE);
   
-  ros::Duration(0.1).sleep();
+  // ros::Duration(0.1).sleep();
 
   vsc_setup_unlock(vscInterface);
   vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
   vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_SERIAL);
   vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_FIRMWARE);
   
-  ros::Duration(0.1).sleep();
+  // ros::Duration(0.1).sleep();
 
   vsc_setup_unlock(vscInterface);
   vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
