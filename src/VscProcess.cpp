@@ -342,7 +342,6 @@ int VscProcess::handleGetSettingInt(VscMsgType& recvMsg)
     {
         ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
     }
-    ROS_INFO("Received Raw Message: %s", ss.str().c_str());
 
     if (recvMsg.msg.data[0] == VSC_SETUP_KEY_RADIO_POWER_LEVEL)
     {
@@ -351,7 +350,6 @@ int VscProcess::handleGetSettingInt(VscMsgType& recvMsg)
       {
           ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.data[i]);
       }
-      ROS_INFO("Raw Data: %s", ss.str().c_str());
       
       radio_power_level = recvMsg.msg.data[1] | (recvMsg.msg.data[2] << 8) | (recvMsg.msg.data[3] << 16) | (recvMsg.msg.data[4] << 24);
 
@@ -381,14 +379,12 @@ int VscProcess::handleGetSettingString(VscMsgType& recvMsg)
     {
         ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
     }
-    ROS_INFO("Received Raw Message: %s", ss.str().c_str());
 
     if (recvMsg.msg.data[0] == VSC_SETUP_KEY_SERIAL)
     {
       serial.assign(reinterpret_cast<const char*>(recvMsg.msg.data+1), VSC_SETTING_SERIAL_LENGTH);
 
       have_serial = true;
-      ROS_INFO("Acquired VSC Serial Number");
     }
     else if (recvMsg.msg.data[0] == VSC_SETUP_KEY_FIRMWARE)
     {
@@ -447,14 +443,12 @@ void VscProcess::readFromVehicle()
         //			handleGetSettingInt2(&recvMsg);
         break;
       case MSG_SETUP_KEY_INT_1:
-        ROS_INFO("Received MSG_SETUP_KEY_INT_1");
         if(handleGetSettingInt(recvMsg) == 0)
         {
           lastDataRx = ros::Time::now();
         }
         break;
       case MSG_SETUP_KEY_STRING_1:
-        ROS_INFO("Received MSG_SETUP_KEY_STRING_1");
         if(handleGetSettingString(recvMsg) == 0)
         {
           lastDataRx = ros::Time::now();
