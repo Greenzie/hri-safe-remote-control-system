@@ -310,10 +310,7 @@ void vsc_send_control_msg_rate(VscInterfaceType* vscInterface, uint8_t msgTypeTo
   memcpy(feedbackMsg.msg.data, msgPtr, feedbackMsg.msg.length);
 
   /* Send Message */
-  if (vsc_send_msg(vscInterface, &feedbackMsg) < 0) {
-    // Error print commented out due to spam
-    fprintf(stderr, "vsc_send_control_msg_rate: Send Message Failure (Errno: %i)\n", errno);
-  }
+  vsc_send_msg(vscInterface, &feedbackMsg);
 }
 
 /**
@@ -338,10 +335,7 @@ void vsc_send_user_feedback(VscInterfaceType* vscInterface, uint8_t key, int32_t
 	msgPtr->value = value;
 
 	/* Send Message */
-	if (vsc_send_msg(vscInterface, &feedbackMsg) < 0) {
-    // Error print commented out due to spam
-	  //fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
-	}
+	vsc_send_msg(vscInterface, &feedbackMsg);
 }
 
 /**
@@ -367,10 +361,7 @@ void vsc_send_user_feedback_string(VscInterfaceType* vscInterface, uint8_t key, 
 	strncpy(msgPtr->value, value, VSC_USER_FEEDBACK_STRING_LENGTH);
 
 	/* Send Message */
-	if (vsc_send_msg(vscInterface, &feedbackMsg) < 0) {
-		// Error print commented out due to spam
-	  //fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
-	}
+	vsc_send_msg(vscInterface, &feedbackMsg);
 }
 
 /**
@@ -393,10 +384,7 @@ void vsc_send_heartbeat(VscInterfaceType* vscInterface, uint8_t EStopStatus) {
 	msgPtr->EStopStatus = EStopStatus;
 
 	/* Send Message */
-	if (vsc_send_msg(vscInterface, &heartbeatMsg) < 0) {
-    // Error print commented out due to spam
-	  //fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
-	}
+	vsc_send_msg(vscInterface, &heartbeatMsg);
 
 }
 
@@ -419,10 +407,7 @@ void vsc_scm_target_set(VscInterfaceType* vscInterface, int target_id)
 	msgPtr->target_id = target_id;
 
 	/* Send Message */
-	if (vsc_send_msg(vscInterface, &scmTargetSetMsg) < 0) {
-    // Error print commented out due to spam
-	  // fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
-	}
+	vsc_send_msg(vscInterface, &scmTargetSetMsg);
 }
 
 /** vsc_scm_target_get()
@@ -440,10 +425,7 @@ void vsc_scm_target_get(VscInterfaceType* vscInterface)
 	scmTargetGetMsg.msg.length = sizeof(SCMTargetGetMsgType);
 
 	/* Send Message */
-	if (vsc_send_msg(vscInterface, &scmTargetGetMsg) < 0) {
-    // Error print commented out due to spam
-	  // fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
-	}
+	vsc_send_msg(vscInterface, &scmTargetGetMsg);
 }
 
 /** vsc_setup_unlock()
@@ -464,10 +446,7 @@ void vsc_setup_unlock(VscInterfaceType* vscInterface)
 	msgPtr->code = VSC_SETUP_UNLOCK_CODE;
 
 	/* Send Message */
-	if (vsc_send_msg(vscInterface, &setupUnlockMsg) < 0) {
-    // Error print commented out due to spam
-	  // fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
-	}
+	vsc_send_msg(vscInterface, &setupUnlockMsg);
 }
 
 /** vsc_get_setting()
@@ -489,10 +468,7 @@ void vsc_get_setting(VscInterfaceType* vscInterface, uint8_t key)
 	msgPtr->key = key;
 
 	/* Send Message */
-	if (vsc_send_msg(vscInterface, &getSettingMsg) < 0) {
-    // Error print commented out due to spam
-	  // fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
-	}
+	vsc_send_msg(vscInterface, &getSettingMsg);
 }
 
 /** vsc_get_setting_int()
@@ -514,10 +490,7 @@ void vsc_get_setting_int(VscInterfaceType* vscInterface, uint8_t key)
 	msgPtr->key = key;
 
 	/* Send Message */
-	if (vsc_send_msg(vscInterface, &getSettingMsg) < 0) {
-    // Error print commented out due to spam
-	  // fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
-	}
+	vsc_send_msg(vscInterface, &getSettingMsg);
 }
 
 /** vsc_get_setting_string()
@@ -539,10 +512,7 @@ void vsc_get_setting_string(VscInterfaceType* vscInterface, uint8_t key)
 	msgPtr->key = key;
 
 	/* Send Message */
-	if (vsc_send_msg(vscInterface, &getSettingMsg) < 0) {
-    // Error print commented out due to spam
-	  // fprintf(stderr, "vsc_example: Send Message Failure (Errno: %i)\n", errno);
-	}
+	vsc_send_msg(vscInterface, &getSettingMsg);
 }
 
 /**
