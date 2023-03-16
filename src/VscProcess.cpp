@@ -81,17 +81,17 @@ VscProcess::VscProcess() : myEStopState(0)
   vsc_scm_target_get(vscInterface);
 
   vsc_setup_unlock(vscInterface);
-  vsc_get_setting(vscInterface, VSC_SETUP_KEY_radio_power_db);
+  vsc_get_setting(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
   vsc_get_setting(vscInterface, VSC_SETUP_KEY_SERIAL);
   vsc_get_setting(vscInterface, VSC_SETUP_KEY_FIRMWARE);
 
   vsc_setup_unlock(vscInterface);
-  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_radio_power_db);
+  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
   vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_SERIAL);
   vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_FIRMWARE);
 
   vsc_setup_unlock(vscInterface);
-  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_radio_power_db);
+  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
   vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_SERIAL);
   vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_FIRMWARE);
 
@@ -337,7 +337,7 @@ int VscProcess::handleGetSettingInt(VscMsgType& recvMsg)
         ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
     }
 
-    if (recvMsg.msg.data[0] == VSC_SETUP_KEY_radio_power_db)
+    if (recvMsg.msg.data[0] == VSC_SETUP_KEY_RADIO_POWER_LEVEL)
     {
       std::stringstream ss;
       for (size_t i = 0; i < recvMsg.msg.length; i++)
