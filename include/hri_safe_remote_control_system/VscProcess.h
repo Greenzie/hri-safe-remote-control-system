@@ -87,12 +87,12 @@ private:
   int serial_speed_ = 115200;
 
   // Setting Grab Values
-  bool have_radio_power_level = false;
+  bool have_radio_power_db = false;
   bool have_serial = false;
   bool have_firmware = false;
   bool srv_ready = false;
 
-  int radio_power_level = -1;
+  int radio_power_db = -1;
   std::string serial = "";
   std::string firmware = "";
   

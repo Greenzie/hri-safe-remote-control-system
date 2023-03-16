@@ -81,17 +81,17 @@ VscProcess::VscProcess() : myEStopState(0)
   vsc_scm_target_get(vscInterface);
 
   vsc_setup_unlock(vscInterface);
-  vsc_get_setting(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+  vsc_get_setting(vscInterface, VSC_SETUP_KEY_radio_power_db);
   vsc_get_setting(vscInterface, VSC_SETUP_KEY_SERIAL);
   vsc_get_setting(vscInterface, VSC_SETUP_KEY_FIRMWARE);
 
   vsc_setup_unlock(vscInterface);
-  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_radio_power_db);
   vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_SERIAL);
   vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_FIRMWARE);
 
   vsc_setup_unlock(vscInterface);
-  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_radio_power_db);
   vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_SERIAL);
   vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_FIRMWARE);
 
@@ -234,7 +234,7 @@ bool VscProcess::vscSettingsSrv(GetVscSettings::Request  &req, GetVscSettings::R
   res.srv_ready = srv_ready;
   res.serial_number = serial;
   res.firmware_version = firmware;
-  res.radio_power_level = radio_power_level;
+  res.radio_power_db = radio_power_db;
 
   return true;
 }
@@ -247,7 +247,7 @@ void VscProcess::processOneLoop(const ros::TimerEvent&)
   // Check for new data from vehicle in every state
   readFromVehicle();
 
-  if (have_serial && have_radio_power_level && have_firmware && !srv_ready)
+  if (have_serial && have_radio_power_db && have_firmware && !srv_ready)
   {
     srv_ready = true;
     ROS_INFO("Settings Grabbed from VSC, service is ready..");
@@ -337,7 +337,7 @@ int VscProcess::handleGetSettingInt(VscMsgType& recvMsg)
         ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
     }
 
-    if (recvMsg.msg.data[0] == VSC_SETUP_KEY_RADIO_POWER_LEVEL)
+    if (recvMsg.msg.data[0] == VSC_SETUP_KEY_radio_power_db)
     {
       std::stringstream ss;
       for (size_t i = 0; i < recvMsg.msg.length; i++)
@@ -345,9 +345,9 @@ int VscProcess::handleGetSettingInt(VscMsgType& recvMsg)
           ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.data[i]);
       }
       
-      radio_power_level = recvMsg.msg.data[1] | (recvMsg.msg.data[2] << 8) | (recvMsg.msg.data[3] << 16) | (recvMsg.msg.data[4] << 24);
+      radio_power_db = recvMsg.msg.data[1] | (recvMsg.msg.data[2] << 8) | (recvMsg.msg.data[3] << 16) | (recvMsg.msg.data[4] << 24);
 
-      have_radio_power_level = true;
+      have_radio_power_db = true;
       ROS_INFO("Acquired VSC Radio Power Level");
     }
   }
