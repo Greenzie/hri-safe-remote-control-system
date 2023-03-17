@@ -156,6 +156,53 @@ void vsc_send_user_feedback_string(VscInterfaceType* vscInterface, uint8_t key, 
  */
 void vsc_send_heartbeat(VscInterfaceType* vscInterface, uint8_t EStopStatus);
 
+/** vsc_scm_target_set()
+ * @brief This function sends a SCM Target Set Command to the VSC to prepare for a settings grab.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ * @param target_id The identifier for the target, 0 for local.
+ */
+void vsc_scm_target_set(VscInterfaceType* vscInterface, int target_id);
+
+/** vsc_scm_target_get()
+ * @brief This function sends a SCM Target Get Command to the VSC to prepare for a settings grab.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ */
+void vsc_scm_target_get(VscInterfaceType* vscInterface);
+
+/** vsc_setup_unlock()
+ * @brief This function unlocks Setup mode on the VSC to prepare for a settings grab.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ */
+void vsc_setup_unlock(VscInterfaceType* vscInterface);
+
+/** vsc_get_setting()
+ * @brief This function queries the VSC for a setting with the key.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ * @param key The identifier for the setting to be queried.
+ */
+void vsc_get_setting(VscInterfaceType* vscInterface, uint8_t key);
+
+/** vsc_get_setting_int()
+ * @brief This function queries the VSC for a setting with the key, in integer format.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ * @param key The identifier for the setting to be queried.
+ */
+void vsc_get_setting_int(VscInterfaceType* vscInterface, uint8_t key);
+
+/** vsc_get_setting_string()
+ * @brief This function queries the VSC for a setting with the key, in string format.
+ * 
+ * @param vscInterface VSC Interface Structure.
+ * @param key The identifier for the setting to be queried.
+ */
+void vsc_get_setting_string(VscInterfaceType* vscInterface, uint8_t key);
+
+
 #ifdef __cplusplus
 }
 #endif

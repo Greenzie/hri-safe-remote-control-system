@@ -77,6 +77,24 @@ VscProcess::VscProcess() : myEStopState(0)
     }
   }
 
+  vsc_scm_target_set(vscInterface, 0);
+  vsc_scm_target_get(vscInterface);
+
+  vsc_setup_unlock(vscInterface);
+  vsc_get_setting(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+  vsc_get_setting(vscInterface, VSC_SETUP_KEY_SERIAL);
+  vsc_get_setting(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+
+  vsc_setup_unlock(vscInterface);
+  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_SERIAL);
+  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+
+  vsc_setup_unlock(vscInterface);
+  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_SERIAL);
+  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+
   // Create Message Handlers
   joystickHandler = new JoystickHandler();
 
@@ -86,6 +104,8 @@ VscProcess::VscProcess() : myEStopState(0)
   // KeyValue callbacks
   keyValueServ = rosNode.advertiseService("safety/service/key_value", &VscProcess::KeyValue, this);
   keyStringServ = rosNode.advertiseService("safety/service/key_string", &VscProcess::KeyString, this);
+
+  vscSettingServ = rosNode.advertiseService("vsc/settings", &VscProcess::vscSettingsSrv, this);
 
   // Publish Emergency Stop Status
   estopPub = rosNode.advertise<std_msgs::UInt32>("safety/emergency_stop", 10);
@@ -209,6 +229,16 @@ bool VscProcess::KeyString(KeyString::Request& req, KeyString::Response& res)
   return true;
 }
 
+bool VscProcess::vscSettingsSrv(GetVscSettings::Request  &req, GetVscSettings::Response &res)
+{
+  res.srv_ready = srv_ready;
+  res.serial_number = serial;
+  res.firmware_version = firmware;
+  res.radio_power_db = radio_power_db;
+
+  return true;
+}
+
 void VscProcess::processOneLoop(const ros::TimerEvent&)
 {
   // Send heartbeat message to vehicle in every state
@@ -216,6 +246,12 @@ void VscProcess::processOneLoop(const ros::TimerEvent&)
 
   // Check for new data from vehicle in every state
   readFromVehicle();
+
+  if (have_serial && have_radio_power_db && have_firmware && !srv_ready)
+  {
+    srv_ready = true;
+    ROS_INFO("Settings Grabbed from VSC, service is ready..");
+  }
 }
 
 int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
@@ -290,6 +326,79 @@ int VscProcess::handleRemoteStatusMsg(VscMsgType& recvMsg)
   return retVal;
 }
 
+int VscProcess::handleGetSettingInt(VscMsgType& recvMsg)
+{
+  int retVal = 0;
+  if (recvMsg.msg.length == (sizeof(uint8_t) + sizeof(int32_t)))
+  {
+    std::stringstream ss;
+    for (size_t i = 0; i < recvMsg.msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
+    {
+        ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
+    }
+
+    if (recvMsg.msg.data[0] == VSC_SETUP_KEY_RADIO_POWER_LEVEL)
+    {
+      std::stringstream ss;
+      for (size_t i = 0; i < recvMsg.msg.length; i++)
+      {
+          ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.data[i]);
+      }
+      
+      radio_power_db = recvMsg.msg.data[1] | (recvMsg.msg.data[2] << 8) | (recvMsg.msg.data[3] << 16) | (recvMsg.msg.data[4] << 24);
+
+      have_radio_power_db = true;
+      ROS_INFO("Acquired VSC Radio Power Level");
+    }
+  }
+  else
+  {
+    ROS_WARN("RECEIVED SETTING MESSAGE WITH INVALID MESSAGE SIZE! Expected: 0x%x, Actual: 0x%x",
+             (unsigned int)(sizeof(uint8_t) + sizeof(int32_t)),
+             recvMsg.msg.length);
+    retVal = 1;
+  }
+
+  return retVal;
+}
+
+int VscProcess::handleGetSettingString(VscMsgType& recvMsg)
+{
+  int retVal = 0;
+
+  if (recvMsg.msg.length == (sizeof(uint8_t) + VSC_SETTING_STRING_LENGTH))
+  {
+    std::stringstream ss;
+    for (size_t i = 0; i < recvMsg.msg.length + VSC_HEADER_OVERHEAD + VSC_FOOTER_OVERHEAD; i++)
+    {
+        ss << "\\x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(recvMsg.msg.buffer[i]);
+    }
+
+    if (recvMsg.msg.data[0] == VSC_SETUP_KEY_SERIAL)
+    {
+      serial.assign(reinterpret_cast<const char*>(recvMsg.msg.data+1), VSC_SETTING_SERIAL_LENGTH);
+
+      have_serial = true;
+    }
+    else if (recvMsg.msg.data[0] == VSC_SETUP_KEY_FIRMWARE)
+    {
+      firmware.assign(reinterpret_cast<const char*>(recvMsg.msg.data+1), VSC_SETTING_FIRMWARE_LENGTH);
+
+      have_firmware = true;
+      ROS_INFO("Acquired VSC Firmware Version");
+    }
+  }
+  else
+  {
+    ROS_WARN("RECEIVED SETTING MESSAGE WITH INVALID MESSAGE SIZE! Expected: 0x%x, Actual: 0x%x",
+             (unsigned int)(sizeof(uint8_t) + VSC_SETTING_STRING_LENGTH),
+             recvMsg.msg.length);
+    retVal = 1;
+  }
+
+  return retVal;
+}
+
 void VscProcess::readFromVehicle()
 {
   VscMsgType recvMsg;
@@ -324,7 +433,23 @@ void VscProcess::readFromVehicle()
       case MSG_USER_FEEDBACK:
         //			handleFeedbackMsg(&recvMsg);
         break;
+      case MSG_SETUP_KEY_INT_2:
+        //			handleGetSettingInt2(&recvMsg);
+        break;
+      case MSG_SETUP_KEY_INT_1:
+        if(handleGetSettingInt(recvMsg) == 0)
+        {
+          lastDataRx = ros::Time::now();
+        }
+        break;
+      case MSG_SETUP_KEY_STRING_1:
+        if(handleGetSettingString(recvMsg) == 0)
+        {
+          lastDataRx = ros::Time::now();
+        }
+        break;
       default:
+        ROS_WARN("Received Invalid Message of type: %02x", recvMsg.msg.msgType);
         errorCounts.invalidRxMsgCount++;
         break;
     }

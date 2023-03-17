@@ -1,0 +1,5 @@
+---
+bool srv_ready
+string serial_number
+string firmware_version
+int16 radio_power_db  # in dB
