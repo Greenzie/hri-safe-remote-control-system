@@ -76,26 +76,8 @@ VscProcess::VscProcess() : myEStopState(0)
     }
   }
 
-  if (vscInterface != NULL)
-  {
-    vsc_scm_target_set(vscInterface, 0);
-    vsc_scm_target_get(vscInterface);
-
-    vsc_setup_unlock(vscInterface);
-    vsc_get_setting(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
-    vsc_get_setting(vscInterface, VSC_SETUP_KEY_SERIAL);
-    vsc_get_setting(vscInterface, VSC_SETUP_KEY_FIRMWARE);
-
-    vsc_setup_unlock(vscInterface);
-    vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
-    vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_SERIAL);
-    vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_FIRMWARE);
-
-    vsc_setup_unlock(vscInterface);
-    vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
-    vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_SERIAL);
-    vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_FIRMWARE);
-  }
+  // Grab VSC Settings
+  settingsGrab();
 
   // Create Message Handlers
   joystickHandler = new JoystickHandler();
@@ -274,6 +256,10 @@ void VscProcess::processOneLoop(const ros::TimerEvent&)
   {
     srv_ready = true;
     ROS_INFO("Settings Grabbed from VSC, service is ready..");
+  }
+  else
+  {
+    settingsGrab();
   }
 }
 
@@ -513,5 +499,29 @@ void VscProcess::readFromVehicle()
     vsc_send_control_msg_rate(vscInterface, MSG_VSC_REMOTE_STATUS, enableMessage, milliSecondInterval);
     // reset rx time to allow time for VSC to send a message
     lastRemoteStatusRxTime = ros::Time::now();   
+  }
+}
+
+void VscProcess::settingsGrab()
+{
+  if (vscInterface != NULL)
+  {
+    vsc_scm_target_set(vscInterface, 0);
+    vsc_scm_target_get(vscInterface);
+
+    vsc_setup_unlock(vscInterface);
+    vsc_get_setting(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+    vsc_get_setting(vscInterface, VSC_SETUP_KEY_SERIAL);
+    vsc_get_setting(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+
+    vsc_setup_unlock(vscInterface);
+    vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+    vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_SERIAL);
+    vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+
+    vsc_setup_unlock(vscInterface);
+    vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+    vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_SERIAL);
+    vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_FIRMWARE);
   }
 }

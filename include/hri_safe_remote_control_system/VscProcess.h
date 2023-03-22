@@ -75,6 +75,7 @@ public:
 
 private:
   void readFromVehicle();
+  void settingsGrab();
   int handleHeartbeatMsg(VscMsgType& recvMsg);
   int handleRemoteStatusMsg(VscMsgType& recvMsg);
   int handleGetSettingInt(VscMsgType& recvMsg);
