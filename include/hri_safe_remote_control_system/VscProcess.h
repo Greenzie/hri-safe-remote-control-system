@@ -87,6 +87,7 @@ private:
   int serial_speed_ = 115200;
   bool vsc_initialized_ = false;
 
+
   // Setting Grab Values
   bool have_radio_power_db = false;
   bool have_serial = false;
@@ -109,7 +110,7 @@ private:
   ros::Subscriber vibrateSrcSub;
   ros::Subscriber displaySrcOnSub;
   ros::Subscriber displaySrcOffSub;
-  ros::Time lastDataRx, lastTxTime, lastRemoteStatusRxTime;
+  ros::Time lastDataRx, lastTxTime, lastRemoteStatusRxTime, lastReconnectAttempt;
 
   // Message Handlers
   MsgHandler* joystickHandler;
