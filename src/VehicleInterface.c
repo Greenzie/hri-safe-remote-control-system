@@ -147,98 +147,101 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 	VscMsgType *msgPtr;
 	int retval = -1;
 	bool done = false;
-	int bytesRead;
+	int bytesRead = 0;
 
-	/* Perform non-blocking read on serial terminal into receive buffer */
-	bytesRead = read_from_serial(vscInterface->fd,
-			(void*) (vscInterface->recvbuffer + vscInterface->front),
-			(SIZE_RECEIVE_BUFFER - vscInterface->front));
+	if (vscInterface != NULL)
+	{
+		/* Perform non-blocking read on serial terminal into receive buffer */
+		bytesRead = read_from_serial(vscInterface->fd,
+				(void*) (vscInterface->recvbuffer + vscInterface->front),
+				(SIZE_RECEIVE_BUFFER - vscInterface->front));		
 
-	/* Received Data */
-	if (bytesRead >= 0) {
-		vscInterface->front += bytesRead;
-	} else {
-		fprintf(stderr, "VscInterface: Receive Error. (%i) (%i)\n", retval,
-				errno);
-	}
-
-	/* Check for messages in queue when all of the following are true:
-	 *  - Queue is not empty
-	 *  - Queue size is at least as big as smallest message
-	 *  - Haven't already found a message
-	 *
-	 * Handle:
-	 * Buffer starting mid message (trash)
-	 * Buffer containing multiple messages (return first, update pointers)
-	 * Buffer containing half message (leave buffer as is)
-	 * Buffer containing full and half message (return first, update pointers)
-	 * Buffer containing full message (return message, update pointers)
-	 */
-	while (vscInterface->front != vscInterface->back
-			&& (vscInterface->front - vscInterface->back
-					>= VSC_MIN_MESSAGE_LENGTH) && !done) {
-		msgPtr = (VscMsgType *) (vscInterface->recvbuffer + vscInterface->back);
-		if (msgPtr->msg.header_1 == VSC_MESSAGE_HEADER_1
-				&& msgPtr->msg.header_2 == VSC_MESSAGE_HEADER_2) {
-			/* Verify length */
-			uint32_t expectedLength = msgPtr->msg.length + VSC_HEADER_OVERHEAD
-					+ VSC_FOOTER_OVERHEAD;
-
-			if ((vscInterface->front - vscInterface->back) < expectedLength) {
-				/* Received partial message */
-				done = true;
-			} else {
-
-				/* Calculate Fletchers Checksum verify */
-				uint16_t checksum = checksum_16((uint8_t*) msgPtr->msg.buffer,
-						msgPtr->msg.length + VSC_HEADER_OVERHEAD);
-				if ((msgPtr->msg.buffer[msgPtr->msg.length + VSC_HEADER_OVERHEAD]
-						== (checksum & 0xff))
-						&& (msgPtr->msg.buffer[msgPtr->msg.length
-								+ VSC_HEADER_OVERHEAD + 1]
-								== ((checksum >> 8) & 0xff))) {
-
-					/* Copy to output */
-					memcpy((void*) newMsg, (void*) msgPtr, expectedLength);
-
-					/* Update indices */
-					vscInterface->back += expectedLength;
-
-					done = true;
-					retval = 1;
-				} else {
-					fprintf(stderr,
-							"VscInterface: Invalid checksum 0x%02x 0x%02x received when expecting 0x%02x 0x%02x\n",
-							msgPtr->msg.buffer[msgPtr->msg.length
-									+ VSC_HEADER_OVERHEAD],
-							msgPtr->msg.buffer[msgPtr->msg.length
-									+ VSC_HEADER_OVERHEAD + 1], checksum & 0xff,
-							(checksum >> 8) & 0xff);
-					
-					vscInterface->back += expectedLength;
-				}
-			}
+		/* Received Data */
+		if (bytesRead >= 0) {
+			vscInterface->front += bytesRead;
 		} else {
-			/* Search for start of message. */
-			fprintf(stderr,
-					"VscInterface: Invalid bytes 0x%02x 0x%02x received when expecting message headers\n",
-					msgPtr->msg.header_1, msgPtr->msg.header_2);
-			vscInterface->back++;
+			fprintf(stderr, "VscInterface: Receive Error. (%i) (%i)\n", retval,
+					errno);
 		}
-	}
 
-	/* Reset pointers */
-	if (vscInterface->front == vscInterface->back) {
-		vscInterface->front = vscInterface->back = 0;
-	} else if (vscInterface->front == SIZE_RECEIVE_BUFFER) {
-		/* Handle the case where the buffer is FULL from a backlog, and a partial message is on the boundary.
-		 * Move partial message to back of queue to open up space to read remainder of message.
-		 */
-		memmove(vscInterface->recvbuffer,
-				vscInterface->recvbuffer + vscInterface->back,
-				vscInterface->front - vscInterface->back);
-		vscInterface->front = vscInterface->front - vscInterface->back;
-		vscInterface->back = 0;
+		/* Check for messages in queue when all of the following are true:
+		*  - Queue is not empty
+		*  - Queue size is at least as big as smallest message
+		*  - Haven't already found a message
+		*
+		* Handle:
+		* Buffer starting mid message (trash)
+		* Buffer containing multiple messages (return first, update pointers)
+		* Buffer containing half message (leave buffer as is)
+		* Buffer containing full and half message (return first, update pointers)
+		* Buffer containing full message (return message, update pointers)
+		*/
+		while (vscInterface->front != vscInterface->back
+				&& (vscInterface->front - vscInterface->back
+						>= VSC_MIN_MESSAGE_LENGTH) && !done) {
+			msgPtr = (VscMsgType *) (vscInterface->recvbuffer + vscInterface->back);
+			if (msgPtr->msg.header_1 == VSC_MESSAGE_HEADER_1
+					&& msgPtr->msg.header_2 == VSC_MESSAGE_HEADER_2) {
+				/* Verify length */
+				uint32_t expectedLength = msgPtr->msg.length + VSC_HEADER_OVERHEAD
+						+ VSC_FOOTER_OVERHEAD;
+
+				if ((vscInterface->front - vscInterface->back) < expectedLength) {
+					/* Received partial message */
+					done = true;
+				} else {
+
+					/* Calculate Fletchers Checksum verify */
+					uint16_t checksum = checksum_16((uint8_t*) msgPtr->msg.buffer,
+							msgPtr->msg.length + VSC_HEADER_OVERHEAD);
+					if ((msgPtr->msg.buffer[msgPtr->msg.length + VSC_HEADER_OVERHEAD]
+							== (checksum & 0xff))
+							&& (msgPtr->msg.buffer[msgPtr->msg.length
+									+ VSC_HEADER_OVERHEAD + 1]
+									== ((checksum >> 8) & 0xff))) {
+
+						/* Copy to output */
+						memcpy((void*) newMsg, (void*) msgPtr, expectedLength);
+
+						/* Update indices */
+						vscInterface->back += expectedLength;
+
+						done = true;
+						retval = 1;
+					} else {
+						fprintf(stderr,
+								"VscInterface: Invalid checksum 0x%02x 0x%02x received when expecting 0x%02x 0x%02x\n",
+								msgPtr->msg.buffer[msgPtr->msg.length
+										+ VSC_HEADER_OVERHEAD],
+								msgPtr->msg.buffer[msgPtr->msg.length
+										+ VSC_HEADER_OVERHEAD + 1], checksum & 0xff,
+								(checksum >> 8) & 0xff);
+						
+						vscInterface->back += expectedLength;
+					}
+				}
+			} else {
+				/* Search for start of message. */
+				fprintf(stderr,
+						"VscInterface: Invalid bytes 0x%02x 0x%02x received when expecting message headers\n",
+						msgPtr->msg.header_1, msgPtr->msg.header_2);
+				vscInterface->back++;
+			}
+		}
+
+		/* Reset pointers */
+		if (vscInterface->front == vscInterface->back) {
+			vscInterface->front = vscInterface->back = 0;
+		} else if (vscInterface->front == SIZE_RECEIVE_BUFFER) {
+			/* Handle the case where the buffer is FULL from a backlog, and a partial message is on the boundary.
+			* Move partial message to back of queue to open up space to read remainder of message.
+			*/
+			memmove(vscInterface->recvbuffer,
+					vscInterface->recvbuffer + vscInterface->back,
+					vscInterface->front - vscInterface->back);
+			vscInterface->front = vscInterface->front - vscInterface->back;
+			vscInterface->back = 0;
+		}
 	}
 
 	return retval;

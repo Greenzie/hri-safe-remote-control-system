@@ -465,7 +465,7 @@ void VscProcess::readFromVehicle()
     vscInterface = vsc_initialize(serial_port_.c_str(), serial_speed_);
     if (vscInterface == NULL)
     {
-      ROS_FATAL("Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
+      ROS_ERROR("Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
     }
     else
     {

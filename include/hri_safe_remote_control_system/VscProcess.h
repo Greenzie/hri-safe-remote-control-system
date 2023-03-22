@@ -85,6 +85,7 @@ private:
   ErrorCounterType errorCounts;
   std::string serial_port_ = "/dev/ttyACM0";
   int serial_speed_ = 115200;
+  bool vsc_initialized_ = false;
 
   // Setting Grab Values
   bool have_radio_power_db = false;
