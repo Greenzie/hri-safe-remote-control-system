@@ -232,8 +232,8 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 		vscInterface->front = vscInterface->back = 0;
 	} else if (vscInterface->front == SIZE_RECEIVE_BUFFER) {
 		/* Handle the case where the buffer is FULL from a backlog, and a partial message is on the boundary.
-		* Move partial message to back of queue to open up space to read remainder of message.
-		*/
+		 * Move partial message to back of queue to open up space to read remainder of message.
+		 */
 		memmove(vscInterface->recvbuffer,
 				vscInterface->recvbuffer + vscInterface->back,
 				vscInterface->front - vscInterface->back);
