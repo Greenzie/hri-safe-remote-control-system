@@ -53,14 +53,12 @@ VscProcess::VscProcess() : myEStopState(0)
 
   /* Open VSC Interface */
   vscInterface = vsc_initialize(serial_port_.c_str(), serial_speed_);
-  if (vscInterface == NULL)
+  while (vscInterface == NULL)
   {
     ROS_ERROR("Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
+    vscInterface = vsc_initialize(serial_port_.c_str(), serial_speed_);
   }
-  else
-  {
-    ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
-  }
+  ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
 
   // Attempt to Set priority
   bool set_priority = false;
@@ -466,14 +464,13 @@ void VscProcess::readFromVehicle()
     ROS_WARN_STREAM("Attempting to reconnect to the VSC...");
     /* Open VSC Interface */
     vscInterface = vsc_initialize(serial_port_.c_str(), serial_speed_);
-    if (vscInterface == NULL)
+    while (vscInterface == NULL)
     {
       ROS_ERROR("Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
+      vscInterface = vsc_initialize(serial_port_.c_str(), serial_speed_);
     }
-    else
-    {
-      ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
-    }
+    ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
+
     // On fail, we expect a crash at the moment. This will mean that the node respawns
   }
   ros::Duration noRemoteStatusDuration = ros::Time::now() - lastRemoteStatusRxTime;
