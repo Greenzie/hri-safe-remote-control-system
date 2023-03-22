@@ -152,7 +152,7 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 	/* Perform non-blocking read on serial terminal into receive buffer */
 	bytesRead = read_from_serial(vscInterface->fd,
 			(void*) (vscInterface->recvbuffer + vscInterface->front),
-			(SIZE_RECEIVE_BUFFER - vscInterface->front));		
+			(SIZE_RECEIVE_BUFFER - vscInterface->front));
 
 	/* Received Data */
 	if (bytesRead >= 0) {
@@ -163,17 +163,17 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 	}
 
 	/* Check for messages in queue when all of the following are true:
-	*  - Queue is not empty
-	*  - Queue size is at least as big as smallest message
-	*  - Haven't already found a message
-	*
-	* Handle:
-	* Buffer starting mid message (trash)
-	* Buffer containing multiple messages (return first, update pointers)
-	* Buffer containing half message (leave buffer as is)
-	* Buffer containing full and half message (return first, update pointers)
-	* Buffer containing full message (return message, update pointers)
-	*/
+	 *  - Queue is not empty
+	 *  - Queue size is at least as big as smallest message
+	 *  - Haven't already found a message
+	 *
+	 * Handle:
+	 * Buffer starting mid message (trash)
+	 * Buffer containing multiple messages (return first, update pointers)
+	 * Buffer containing half message (leave buffer as is)
+	 * Buffer containing full and half message (return first, update pointers)
+	 * Buffer containing full message (return message, update pointers)
+	 */
 	while (vscInterface->front != vscInterface->back
 			&& (vscInterface->front - vscInterface->back
 					>= VSC_MIN_MESSAGE_LENGTH) && !done) {
