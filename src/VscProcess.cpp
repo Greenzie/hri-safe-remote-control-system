@@ -257,7 +257,7 @@ void VscProcess::processOneLoop(const ros::TimerEvent&)
     srv_ready = true;
     ROS_INFO("Settings Grabbed from VSC, service is ready..");
   }
-  else
+  else if (!have_serial || !have_radio_power_db || !have_firmware)
   {
     settingsGrab();
   }
@@ -388,6 +388,7 @@ int VscProcess::handleGetSettingString(VscMsgType& recvMsg)
       serial.assign(reinterpret_cast<const char*>(recvMsg.msg.data+1), VSC_SETTING_SERIAL_LENGTH);
 
       have_serial = true;
+      ROS_INFO("Acquired VSC Firmware Version");
     }
     else if (recvMsg.msg.data[0] == VSC_SETUP_KEY_FIRMWARE)
     {
