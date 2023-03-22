@@ -55,7 +55,7 @@ VscProcess::VscProcess() : myEStopState(0)
   vscInterface = vsc_initialize(serial_port_.c_str(), serial_speed_);
   if (vscInterface == NULL)
   {
-    ROS_FATAL("Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
+    ROS_ERROR("Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
   }
   else
   {
@@ -77,23 +77,26 @@ VscProcess::VscProcess() : myEStopState(0)
     }
   }
 
-  vsc_scm_target_set(vscInterface, 0);
-  vsc_scm_target_get(vscInterface);
+  if (vscInterface != NULL)
+  {
+    vsc_scm_target_set(vscInterface, 0);
+    vsc_scm_target_get(vscInterface);
 
-  vsc_setup_unlock(vscInterface);
-  vsc_get_setting(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
-  vsc_get_setting(vscInterface, VSC_SETUP_KEY_SERIAL);
-  vsc_get_setting(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+    vsc_setup_unlock(vscInterface);
+    vsc_get_setting(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+    vsc_get_setting(vscInterface, VSC_SETUP_KEY_SERIAL);
+    vsc_get_setting(vscInterface, VSC_SETUP_KEY_FIRMWARE);
 
-  vsc_setup_unlock(vscInterface);
-  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
-  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_SERIAL);
-  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+    vsc_setup_unlock(vscInterface);
+    vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+    vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_SERIAL);
+    vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_FIRMWARE);
 
-  vsc_setup_unlock(vscInterface);
-  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
-  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_SERIAL);
-  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+    vsc_setup_unlock(vscInterface);
+    vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+    vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_SERIAL);
+    vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+  }
 
   // Create Message Handlers
   joystickHandler = new JoystickHandler();
