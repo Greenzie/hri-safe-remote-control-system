@@ -264,10 +264,10 @@ void VscProcess::processOneLoop(const ros::TimerEvent&)
   {
     // Send heartbeat message to vehicle in every state
     vsc_send_heartbeat(vscInterface, myEStopState);
-
-    // Check for new data from vehicle in every state
-    readFromVehicle();
   }
+
+  // Check for new data from vehicle in every state
+  readFromVehicle();
 
   if (have_serial && have_radio_power_db && have_firmware && !srv_ready)
   {
@@ -490,13 +490,12 @@ void VscProcess::readFromVehicle()
     vscInterface = vsc_initialize(serial_port_.c_str(), serial_speed_);
     if (vscInterface == NULL)
     {
-      ROS_ERROR("Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
+      ROS_ERROR_THROTTLE(0.5,"Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
     }
-    else
-    {
+    else{
       ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
     }
-    // On fail, we expect a crash at the moment. This will mean that the node respawns
+
   }
   ros::Duration noRemoteStatusDuration = ros::Time::now() - lastRemoteStatusRxTime;
   if (vscInterface != NULL && noRemoteStatusDuration > ros::Duration(2.0))
