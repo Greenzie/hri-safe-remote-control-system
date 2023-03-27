@@ -495,7 +495,8 @@ void VscProcess::readFromVehicle()
     {
       ROS_ERROR_THROTTLE(0.5,"Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
     }
-    else{
+    else
+    {
       ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
     }
 
