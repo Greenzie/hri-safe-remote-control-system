@@ -51,11 +51,16 @@ VscProcess::VscProcess() : myEStopState(0)
     ROS_INFO("Serial Port Speed updated to:  %i", serial_speed_);
   }
 
+  if (nh.getParam("reconnect_time", reconnect_time_))
+  {
+    ROS_INFO("Reconnect Time updated to:  %ds", reconnect_time_);
+  }
+
   /* Open VSC Interface */
   vscInterface = vsc_initialize(serial_port_.c_str(), serial_speed_);
   if (vscInterface == NULL)
   {
-    ROS_FATAL("Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
+    ROS_ERROR("Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
   }
   else
   {
@@ -77,23 +82,8 @@ VscProcess::VscProcess() : myEStopState(0)
     }
   }
 
-  vsc_scm_target_set(vscInterface, 0);
-  vsc_scm_target_get(vscInterface);
-
-  vsc_setup_unlock(vscInterface);
-  vsc_get_setting(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
-  vsc_get_setting(vscInterface, VSC_SETUP_KEY_SERIAL);
-  vsc_get_setting(vscInterface, VSC_SETUP_KEY_FIRMWARE);
-
-  vsc_setup_unlock(vscInterface);
-  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
-  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_SERIAL);
-  vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_FIRMWARE);
-
-  vsc_setup_unlock(vscInterface);
-  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
-  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_SERIAL);
-  vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+  // Grab VSC Settings
+  readSettings();
 
   // Create Message Handlers
   joystickHandler = new JoystickHandler();
@@ -124,6 +114,7 @@ VscProcess::VscProcess() : myEStopState(0)
   // Init last time to now
   lastDataRx = ros::Time::now();
   lastRemoteStatusRxTime = lastDataRx;
+  lastReconnectAttempt = lastDataRx;
 
   // Clear all error counters
   memset(&errorCounts, 0, sizeof(errorCounts));
@@ -135,9 +126,11 @@ VscProcess::~VscProcess()
   std_msgs::EmptyConstPtr clear_msg;
   receivedDisplayOffCommand(clear_msg);
 
-  // Destroy vscInterface
-  vsc_cleanup(vscInterface);
-
+  if (vscInterface != NULL)
+  {
+    // Destroy vscInterface
+    vsc_cleanup(vscInterface);
+  }
   if (joystickHandler)
   {
     delete joystickHandler;
@@ -147,7 +140,7 @@ VscProcess::~VscProcess()
 void VscProcess::receivedVibration(const std_msgs::Bool msg)
 {
   bool received_msg = msg.data;
-  if (received_msg == true)
+  if (received_msg == true && vscInterface != NULL)
   {
     vsc_send_user_feedback(vscInterface, VSC_USER_BOTH_MOTOR_INTENSITY, MOTOR_CONTROL_INTENSITY_HIGH);
   }
@@ -176,6 +169,10 @@ void VscProcess::checkCharacterLimit(const hri_safe_remote_control_system::SrcDi
 
 void VscProcess::receivedDisplayOnCommand(const hri_safe_remote_control_system::SrcDisplay& msg)
 {
+  if (vscInterface == NULL)
+  {
+    return;
+  }
   // Turn on custom display mode
   vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
 
@@ -193,6 +190,12 @@ void VscProcess::receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg)
 {
   hri_safe_remote_control_system::SrcDisplay clear_msg;
   clear_msg.displayrow1 = clear_msg.displayrow2 = clear_msg.displayrow3 = clear_msg.displayrow4 = "";
+  
+  if (vscInterface == NULL)
+  {
+    return;
+  }
+
   vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, clear_msg.displayrow1.c_str());
   vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, clear_msg.displayrow2.c_str());
   vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, clear_msg.displayrow3.c_str());
@@ -211,6 +214,10 @@ bool VscProcess::EmergencyStop(EmergencyStop::Request& req, EmergencyStop::Respo
 
 bool VscProcess::KeyValue(KeyValue::Request& req, KeyValue::Response& res)
 {
+  if (vscInterface == NULL)
+  {
+    return false;
+  }
   // Send heartbeat message to vehicle in every state
   vsc_send_user_feedback(vscInterface, req.Key, req.Value);
 
@@ -221,6 +228,10 @@ bool VscProcess::KeyValue(KeyValue::Request& req, KeyValue::Response& res)
 
 bool VscProcess::KeyString(KeyString::Request& req, KeyString::Response& res)
 {
+  if (vscInterface == NULL)
+  {
+    return false;
+  }
   // Send heartbeat message to vehicle in every state
   vsc_send_user_feedback_string(vscInterface, req.Key, req.Value.c_str());
 
@@ -241,8 +252,11 @@ bool VscProcess::vscSettingsSrv(GetVscSettings::Request  &req, GetVscSettings::R
 
 void VscProcess::processOneLoop(const ros::TimerEvent&)
 {
-  // Send heartbeat message to vehicle in every state
-  vsc_send_heartbeat(vscInterface, myEStopState);
+  if (vscInterface != NULL)
+  {
+    // Send heartbeat message to vehicle in every state
+    vsc_send_heartbeat(vscInterface, myEStopState);
+  }
 
   // Check for new data from vehicle in every state
   readFromVehicle();
@@ -251,6 +265,10 @@ void VscProcess::processOneLoop(const ros::TimerEvent&)
   {
     srv_ready = true;
     ROS_INFO("Settings Grabbed from VSC, service is ready..");
+  }
+  else if (!have_serial || !have_radio_power_db || !have_firmware)
+  {
+    readSettings();
   }
 }
 
@@ -379,6 +397,7 @@ int VscProcess::handleGetSettingString(VscMsgType& recvMsg)
       serial.assign(reinterpret_cast<const char*>(recvMsg.msg.data+1), VSC_SETTING_SERIAL_LENGTH);
 
       have_serial = true;
+      ROS_INFO("Acquired VSC Firmware Version");
     }
     else if (recvMsg.msg.data[0] == VSC_SETUP_KEY_FIRMWARE)
     {
@@ -402,6 +421,11 @@ int VscProcess::handleGetSettingString(VscMsgType& recvMsg)
 void VscProcess::readFromVehicle()
 {
   VscMsgType recvMsg;
+
+  if (vscInterface != NULL)
+  {
+    return;
+  }
 
   /* Read all messages */
   while (vsc_read_next_msg(vscInterface, &recvMsg) > 0)
@@ -456,24 +480,29 @@ void VscProcess::readFromVehicle()
   }
 
   // Log warning when no data is received
-  ros::Duration noDataDuration = ros::Time::now() - lastDataRx;
-  if (noDataDuration > ros::Duration(.25))
+  ros::Time curr_time = ros::Time::now()
+  ros::Duration noDataDuration = curr_time - lastDataRx;
+  ros::Duration reconnectTimeout = curr_time - lastReconnectAttempt;
+  if (noDataDuration > ros::Duration(.25) && reconnectTimeout > ros::Duration(reconnect_time_))
   {
     ROS_WARN_THROTTLE(.5, "No Data Received in %i.%09i seconds", noDataDuration.sec, noDataDuration.nsec);
     ROS_WARN_STREAM("Attempting to reconnect to the VSC...");
+    
+    lastReconnectAttempt = curr_time;
+
     /* Open VSC Interface */
     vscInterface = vsc_initialize(serial_port_.c_str(), serial_speed_);
     if (vscInterface == NULL)
     {
-      ROS_FATAL("Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
+      ROS_ERROR_THROTTLE(0.5,"Cannot open serial port! (%s, %i)", serial_port_.c_str(), serial_speed_);
     }
     else
     {
       ROS_INFO("Connected to VSC on %s : %i", serial_port_.c_str(), serial_speed_);
     }
-    // On fail, we expect a crash at the moment. This will mean that the node respawns
+
   }
-  ros::Duration noRemoteStatusDuration = ros::Time::now() - lastRemoteStatusRxTime;
+  ros::Duration noRemoteStatusDuration = curr_time - lastRemoteStatusRxTime;
   if (vscInterface != NULL && noRemoteStatusDuration > ros::Duration(2.0))
   {
     ROS_WARN_THROTTLE(.5, "No Remote Status Received in %i.%09i seconds", noRemoteStatusDuration.sec, noRemoteStatusDuration.nsec);
@@ -483,6 +512,30 @@ void VscProcess::readFromVehicle()
     /* Enable Remote Status Messages */
     vsc_send_control_msg_rate(vscInterface, MSG_VSC_REMOTE_STATUS, enableMessage, milliSecondInterval);
     // reset rx time to allow time for VSC to send a message
-    lastRemoteStatusRxTime = ros::Time::now();   
+    lastRemoteStatusRxTime = curr_time;   
+  }
+}
+
+void VscProcess::readSettings()
+{
+  if (vscInterface != NULL)
+  {
+    vsc_scm_target_set(vscInterface, 0);
+    vsc_scm_target_get(vscInterface);
+
+    vsc_setup_unlock(vscInterface);
+    vsc_get_setting(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+    vsc_get_setting(vscInterface, VSC_SETUP_KEY_SERIAL);
+    vsc_get_setting(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+
+    vsc_setup_unlock(vscInterface);
+    vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+    vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_SERIAL);
+    vsc_get_setting_int(vscInterface, VSC_SETUP_KEY_FIRMWARE);
+
+    vsc_setup_unlock(vscInterface);
+    vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_RADIO_POWER_LEVEL);
+    vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_SERIAL);
+    vsc_get_setting_string(vscInterface, VSC_SETUP_KEY_FIRMWARE);
   }
 }

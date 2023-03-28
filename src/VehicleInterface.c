@@ -147,7 +147,7 @@ int vsc_read_next_msg(VscInterfaceType* vscInterface, VscMsgType *newMsg) {
 	VscMsgType *msgPtr;
 	int retval = -1;
 	bool done = false;
-	int bytesRead;
+	int bytesRead = 0;
 
 	/* Perform non-blocking read on serial terminal into receive buffer */
 	bytesRead = read_from_serial(vscInterface->fd,

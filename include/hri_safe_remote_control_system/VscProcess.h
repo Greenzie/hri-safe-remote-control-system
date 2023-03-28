@@ -75,6 +75,7 @@ public:
 
 private:
   void readFromVehicle();
+  void readSettings();
   int handleHeartbeatMsg(VscMsgType& recvMsg);
   int handleRemoteStatusMsg(VscMsgType& recvMsg);
   int handleGetSettingInt(VscMsgType& recvMsg);
@@ -85,6 +86,9 @@ private:
   ErrorCounterType errorCounts;
   std::string serial_port_ = "/dev/ttyACM0";
   int serial_speed_ = 115200;
+  bool vsc_initialized_ = false;
+  double reconnect_time_ = 5.0;
+
 
   // Setting Grab Values
   bool have_radio_power_db = false;
@@ -108,7 +112,7 @@ private:
   ros::Subscriber vibrateSrcSub;
   ros::Subscriber displaySrcOnSub;
   ros::Subscriber displaySrcOffSub;
-  ros::Time lastDataRx, lastTxTime, lastRemoteStatusRxTime;
+  ros::Time lastDataRx, lastTxTime, lastRemoteStatusRxTime, lastReconnectAttempt;
 
   // Message Handlers
   MsgHandler* joystickHandler;
