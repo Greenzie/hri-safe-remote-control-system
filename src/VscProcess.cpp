@@ -422,60 +422,58 @@ void VscProcess::readFromVehicle()
 {
   VscMsgType recvMsg;
 
-  if (vscInterface == NULL)
+  if (vscInterface != NULL)
   {
-    return;
-  }
-
-  /* Read all messages */
-  while (vsc_read_next_msg(vscInterface, &recvMsg) > 0)
-  {
-    /* Read next Vsc Message */
-    switch (recvMsg.msg.msgType)
+    /* Read all messages */
+    while (vsc_read_next_msg(vscInterface, &recvMsg) > 0)
     {
-      case MSG_VSC_HEARTBEAT:
-        if (handleHeartbeatMsg(recvMsg) == 0)
-        {
-          lastDataRx = ros::Time::now();
-        }
-        break;
-      case MSG_VSC_JOYSTICK:
-        if (joystickHandler->handleNewMsg(recvMsg) == 0)
-        {
-          lastDataRx = ros::Time::now();
-        }
-        break;
-      case MSG_VSC_REMOTE_STATUS:
-        if(handleRemoteStatusMsg(recvMsg) == 0)
-        {
-          lastDataRx = ros::Time::now();
-        }
-        break; 
-      case MSG_VSC_NMEA_STRING:
-        //			handleGpsMsg(&recvMsg);
-        break;
-      case MSG_USER_FEEDBACK:
-        //			handleFeedbackMsg(&recvMsg);
-        break;
-      case MSG_SETUP_KEY_INT_2:
-        //			handleGetSettingInt2(&recvMsg);
-        break;
-      case MSG_SETUP_KEY_INT_1:
-        if(handleGetSettingInt(recvMsg) == 0)
-        {
-          lastDataRx = ros::Time::now();
-        }
-        break;
-      case MSG_SETUP_KEY_STRING_1:
-        if(handleGetSettingString(recvMsg) == 0)
-        {
-          lastDataRx = ros::Time::now();
-        }
-        break;
-      default:
-        ROS_WARN("Received Invalid Message of type: %02x", recvMsg.msg.msgType);
-        errorCounts.invalidRxMsgCount++;
-        break;
+      /* Read next Vsc Message */
+      switch (recvMsg.msg.msgType)
+      {
+        case MSG_VSC_HEARTBEAT:
+          if (handleHeartbeatMsg(recvMsg) == 0)
+          {
+            lastDataRx = ros::Time::now();
+          }
+          break;
+        case MSG_VSC_JOYSTICK:
+          if (joystickHandler->handleNewMsg(recvMsg) == 0)
+          {
+            lastDataRx = ros::Time::now();
+          }
+          break;
+        case MSG_VSC_REMOTE_STATUS:
+          if(handleRemoteStatusMsg(recvMsg) == 0)
+          {
+            lastDataRx = ros::Time::now();
+          }
+          break; 
+        case MSG_VSC_NMEA_STRING:
+          //			handleGpsMsg(&recvMsg);
+          break;
+        case MSG_USER_FEEDBACK:
+          //			handleFeedbackMsg(&recvMsg);
+          break;
+        case MSG_SETUP_KEY_INT_2:
+          //			handleGetSettingInt2(&recvMsg);
+          break;
+        case MSG_SETUP_KEY_INT_1:
+          if(handleGetSettingInt(recvMsg) == 0)
+          {
+            lastDataRx = ros::Time::now();
+          }
+          break;
+        case MSG_SETUP_KEY_STRING_1:
+          if(handleGetSettingString(recvMsg) == 0)
+          {
+            lastDataRx = ros::Time::now();
+          }
+          break;
+        default:
+          ROS_WARN("Received Invalid Message of type: %02x", recvMsg.msg.msgType);
+          errorCounts.invalidRxMsgCount++;
+          break;
+      }
     }
   }
 
