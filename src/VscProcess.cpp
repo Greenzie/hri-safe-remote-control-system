@@ -114,7 +114,7 @@ VscProcess::VscProcess() : myEStopState(0)
   // Init last time to now
   lastDataRx = ros::Time::now();
   lastRemoteStatusRxTime = lastDataRx;
-  lastReconnectAttempt = ros::Time::now();
+  lastReconnectAttempt = lastDataRx;
 
   // Clear all error counters
   memset(&errorCounts, 0, sizeof(errorCounts));
@@ -480,14 +480,15 @@ void VscProcess::readFromVehicle()
   }
 
   // Log warning when no data is received
-  ros::Duration noDataDuration = ros::Time::now() - lastDataRx;
-  ros::Duration reconnectTimeout = ros::Time::now() - lastReconnectAttempt;
+  ros::Time curr_time = ros::Time::now()
+  ros::Duration noDataDuration = curr_time - lastDataRx;
+  ros::Duration reconnectTimeout = curr_time - lastReconnectAttempt;
   if (noDataDuration > ros::Duration(.25) && reconnectTimeout > ros::Duration(reconnect_time_))
   {
     ROS_WARN_THROTTLE(.5, "No Data Received in %i.%09i seconds", noDataDuration.sec, noDataDuration.nsec);
     ROS_WARN_STREAM("Attempting to reconnect to the VSC...");
     
-    lastReconnectAttempt = ros::Time::now();
+    lastReconnectAttempt = curr_time;
 
     /* Open VSC Interface */
     vscInterface = vsc_initialize(serial_port_.c_str(), serial_speed_);
@@ -501,7 +502,7 @@ void VscProcess::readFromVehicle()
     }
 
   }
-  ros::Duration noRemoteStatusDuration = ros::Time::now() - lastRemoteStatusRxTime;
+  ros::Duration noRemoteStatusDuration = curr_time - lastRemoteStatusRxTime;
   if (vscInterface != NULL && noRemoteStatusDuration > ros::Duration(2.0))
   {
     ROS_WARN_THROTTLE(.5, "No Remote Status Received in %i.%09i seconds", noRemoteStatusDuration.sec, noRemoteStatusDuration.nsec);
@@ -511,7 +512,7 @@ void VscProcess::readFromVehicle()
     /* Enable Remote Status Messages */
     vsc_send_control_msg_rate(vscInterface, MSG_VSC_REMOTE_STATUS, enableMessage, milliSecondInterval);
     // reset rx time to allow time for VSC to send a message
-    lastRemoteStatusRxTime = ros::Time::now();   
+    lastRemoteStatusRxTime = curr_time;   
   }
 }
 
