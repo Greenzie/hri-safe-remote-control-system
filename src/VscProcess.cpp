@@ -53,7 +53,7 @@ VscProcess::VscProcess() : myEStopState(0)
 
   if (nh.getParam("reconnect_time", reconnect_time_))
   {
-    ROS_INFO("Reconnect Time updated to:  %ds", reconnect_time_);
+    ROS_INFO("Reconnect Time updated to:  %fs", reconnect_time_);
   }
 
   /* Open VSC Interface */
