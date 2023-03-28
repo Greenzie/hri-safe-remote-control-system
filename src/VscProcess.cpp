@@ -422,7 +422,7 @@ void VscProcess::readFromVehicle()
 {
   VscMsgType recvMsg;
 
-  if (vscInterface != NULL)
+  if (vscInterface == NULL)
   {
     return;
   }
