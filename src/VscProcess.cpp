@@ -480,7 +480,7 @@ void VscProcess::readFromVehicle()
   }
 
   // Log warning when no data is received
-  ros::Time curr_time = ros::Time::now()
+  ros::Time curr_time = ros::Time::now();
   ros::Duration noDataDuration = curr_time - lastDataRx;
   ros::Duration reconnectTimeout = curr_time - lastReconnectAttempt;
   if (noDataDuration > ros::Duration(.25) && reconnectTimeout > ros::Duration(reconnect_time_))
