@@ -1,3 +1,9 @@
+ros-noetic-hri-safe-remote-control-system (0.2.0-focal3) focal; urgency=medium
+
+  * Modified ESTOP logging to occur only on state change
+
+ -- David Jensen <david@greenzie.com>  Wed, 05 Apr 2023 16:22:34 -0400
+
 ros-noetic-hri-safe-remote-control-system (0.2.0-focal2) focal; urgency=medium
 
   * VSC Disconnection Handling

@@ -288,25 +288,50 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
     estopValue.data = msgPtr->EStopStatus;
     estopPub.publish(estopValue);
 
+    // Static values allow us to detect when the state changes
+    static bool prev_estop_vehicle = false;
+    static bool prev_estop_src = false;
+    static bool prev_estop_any = false;
+
     bool estop_vehicle = (msgPtr->EStopStatus >> 2) & 0x01;
     bool estop_src = msgPtr->EStopStatus & 0x01;
-    if (estop_vehicle && estop_src)
+    bool estop_any = msgPtr->EStopStatus > 0;
+
+    // Print a ROS message when any ESTOP becomes active
+    if (estop_any && !prev_estop_any)
     {
-      ROS_WARN_THROTTLE(5.0, "Received ESTOP from the vehicle and SRC!!! 0x%x", msgPtr->EStopStatus);
+      ROS_WARN("VscProcess: ESTOP now ACTIVE!!! 0x%x", msgPtr->EStopStatus);
     }
-    else if (estop_vehicle)
+
+    // Print a ROS message when the Vehicle ESTOP becomes active or inactive
+    if (estop_vehicle && !prev_estop_vehicle)
     {
-      ROS_WARN_THROTTLE(5.0, "Received ESTOP from the vehicle!!! 0x%x", msgPtr->EStopStatus);
+      ROS_WARN("VscProcess: Received ESTOP on vehicle is now ACTIVE!!! 0x%x", msgPtr->EStopStatus);
     }
-    else if (estop_src)
+    else if (!estop_vehicle && prev_estop_vehicle)
     {
-      //  estop_src && VSC searching state (mode==4), happen when SRC is off AND when Estop turned on
-      ROS_WARN_THROTTLE(5.0, "Received ESTOP from the SRC!!! 0x%x", msgPtr->EStopStatus);
+      ROS_WARN("VscProcess: Received ESTOP on vehicle is NO LONGER ACTIVE 0x%x", msgPtr->EStopStatus);
     }
-    else if (msgPtr->EStopStatus > 0)
+
+    // Print a ROS message when the SRC ESTOP becomes active or inactive
+    if (estop_src && !prev_estop_src)
     {
-      ROS_WARN_THROTTLE(5.0, "Unknown ESTOP signal on Vsc!!! 0x%x", msgPtr->EStopStatus);
+      ROS_WARN("VscProcess: Received ESTOP on SRC is now ACTIVE!!! 0x%x", msgPtr->EStopStatus);
     }
+    else if (!estop_src && prev_estop_src)
+    {
+      ROS_WARN("VscProcess: Received ESTOP on SRC is NO LONGER ACTIVE 0x%x", msgPtr->EStopStatus);
+    }
+
+    // Print a ROS message if all ESTOPs are now clear
+    if (!estop_any && prev_estop_any)
+    {
+      ROS_WARN("VscProcess: All ESTOPS now inactive 0x%x", msgPtr->EStopStatus);
+    }
+
+    // Updated previous values values
+    prev_estop_vehicle = estop_vehicle;
+    prev_estop_src = estop_src;
   }
   else
   {
