@@ -332,6 +332,7 @@ int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
     // Updated previous values values
     prev_estop_vehicle = estop_vehicle;
     prev_estop_src = estop_src;
+    prev_estop_any = estop_any;
   }
   else
   {
