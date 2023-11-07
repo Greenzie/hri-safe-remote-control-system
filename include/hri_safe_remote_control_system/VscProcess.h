@@ -21,11 +21,11 @@
 #include "ros/ros.h"
 #include <std_msgs/Bool.h>
 #include <std_msgs/Empty.h>
+#include <std_msgs/String.h>
 
 #include "hri_safe_remote_control_system/EmergencyStop.h"
 #include "hri_safe_remote_control_system/KeyValue.h"
 #include "hri_safe_remote_control_system/KeyString.h"
-#include "hri_safe_remote_control_system/SrcDisplay.h"
 #include "hri_safe_remote_control_system/SrcHealth.h"
 
 #include "hri_safe_remote_control_system/GetVscSettings.h"
@@ -69,9 +69,11 @@ public:
   bool vscSettingsSrv(GetVscSettings::Request &req, GetVscSettings::Response &res);
 
   void receivedVibration(const std_msgs::Bool msg);
-  void receivedDisplayOnCommand(const hri_safe_remote_control_system::SrcDisplay& msg);
+  void receivedDisplayOnCommand1(const std_msgs::StringConstPtr& msg);
+  void receivedDisplayOnCommand2(const std_msgs::StringConstPtr& msg);
+  void receivedDisplayOnCommand3(const std_msgs::StringConstPtr& msg);
+  void receivedDisplayOnCommand4(const std_msgs::StringConstPtr& msg);
   void receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg);
-  void checkCharacterLimit(const hri_safe_remote_control_system::SrcDisplay& msg);
 
 private:
   void readFromVehicle();
@@ -110,7 +112,10 @@ private:
   ros::Publisher estopPub;
   ros::Publisher srcHealthPub;
   ros::Subscriber vibrateSrcSub;
-  ros::Subscriber displaySrcOnSub;
+  ros::Subscriber displaySrcOnSub1; // Top Row
+  ros::Subscriber displaySrcOnSub2; // Second from Top
+  ros::Subscriber displaySrcOnSub3; // Third from Top
+  ros::Subscriber displaySrcOnSub4; // Bottom Row
   ros::Subscriber displaySrcOffSub;
   ros::Time lastDataRx, lastTxTime, lastRemoteStatusRxTime, lastReconnectAttempt;
 

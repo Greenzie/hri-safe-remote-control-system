@@ -105,7 +105,10 @@ VscProcess::VscProcess() : myEStopState(0)
 
   // Subscribe for SRC actions
   vibrateSrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
-  displaySrcOnSub = rosNode.subscribe("/src_display_mode_on", 1, &VscProcess::receivedDisplayOnCommand, this);
+  displaySrcOnSub1 = rosNode.subscribe("/src_display_mode_on_1", 1, &VscProcess::receivedDisplayOnCommand1, this);
+  displaySrcOnSub2 = rosNode.subscribe("/src_display_mode_on_2", 1, &VscProcess::receivedDisplayOnCommand2, this);
+  displaySrcOnSub3 = rosNode.subscribe("/src_display_mode_on_3", 1, &VscProcess::receivedDisplayOnCommand3, this);
+  displaySrcOnSub4 = rosNode.subscribe("/src_display_mode_on_4", 1, &VscProcess::receivedDisplayOnCommand4, this);
   displaySrcOffSub = rosNode.subscribe("/src_display_mode_off", 1, &VscProcess::receivedDisplayOffCommand, this);
 
   // Main Loop Timer Callback
@@ -146,28 +149,7 @@ void VscProcess::receivedVibration(const std_msgs::Bool msg)
   }
 }
 
-void VscProcess::checkCharacterLimit(const hri_safe_remote_control_system::SrcDisplay& msg)
-{
-  // Check if display message is above MAXCHARACTERS for a row in SRC display
-  if (msg.displayrow1.size() > msg.MAXCHARACTERS)
-  {
-    ROS_WARN("Maximum characters limit reached for display row 1. Please enter upto 20 characters.");
-  }
-  if (msg.displayrow2.size() > msg.MAXCHARACTERS)
-  {
-    ROS_WARN("Maximum characters limit reached for display row 2. Please enter upto 20 characters.");
-  }
-  if (msg.displayrow3.size() > msg.MAXCHARACTERS)
-  {
-    ROS_WARN("Maximum characters limit reached for display row 3. Please enter upto 20 characters.");
-  }
-  if (msg.displayrow4.size() > msg.MAXCHARACTERS)
-  {
-    ROS_WARN("Maximum characters limit reached for display row 4. Please enter upto 20 characters.");
-  }
-}
-
-void VscProcess::receivedDisplayOnCommand(const hri_safe_remote_control_system::SrcDisplay& msg)
+void VscProcess::receivedDisplayOnCommand1(const std_msgs::StringConstPtr& msg)
 {
   if (vscInterface == NULL)
   {
@@ -176,30 +158,60 @@ void VscProcess::receivedDisplayOnCommand(const hri_safe_remote_control_system::
   // Turn on custom display mode
   vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
 
-  // Checks if the display messages are below the MAXCHARACTERS limit
-  checkCharacterLimit(msg);
+  // Update Display message
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, msg->data.c_str());
+}
 
-  // Update Display messages
-  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, msg.displayrow1.c_str());
-  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg.displayrow2.c_str());
-  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg.displayrow3.c_str());
-  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg.displayrow4.c_str());
+void VscProcess::receivedDisplayOnCommand2(const std_msgs::StringConstPtr& msg)
+{
+  if (vscInterface == NULL)
+  {
+    return;
+  }
+  // Turn on custom display mode
+  vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
+
+  // Update Display message
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, msg->data.c_str());
+}
+
+void VscProcess::receivedDisplayOnCommand3(const std_msgs::StringConstPtr& msg)
+{
+  if (vscInterface == NULL)
+  {
+    return;
+  }
+  // Turn on custom display mode
+  vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
+
+  // Update Display message
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, msg->data.c_str());
+}
+
+void VscProcess::receivedDisplayOnCommand4(const std_msgs::StringConstPtr& msg)
+{
+  if (vscInterface == NULL)
+  {
+    return;
+  }
+  // Turn on custom display mode
+  vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_CUSTOM_TEXT);
+
+  // Update Display message
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, msg->data.c_str());
 }
 
 void VscProcess::receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg)
 {
-  hri_safe_remote_control_system::SrcDisplay clear_msg;
-  clear_msg.displayrow1 = clear_msg.displayrow2 = clear_msg.displayrow3 = clear_msg.displayrow4 = "";
-  
   if (vscInterface == NULL)
   {
     return;
   }
 
-  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, clear_msg.displayrow1.c_str());
-  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, clear_msg.displayrow2.c_str());
-  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, clear_msg.displayrow3.c_str());
-  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, clear_msg.displayrow4.c_str());
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_1, "");
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_2, "");
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, "");
+  vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, "");
   vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_STANDARD);
 }
 
