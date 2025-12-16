@@ -128,6 +128,7 @@ VscProcess::~VscProcess()
   // before destroying, reset the SRC display for next time
   std_msgs::EmptyConstPtr clear_msg;
   receivedDisplayOffCommand(clear_msg);
+  SrcAutoOffEnable(clear_msg);
 
   if (vscInterface != NULL)
   {
@@ -213,6 +214,32 @@ void VscProcess::receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg)
   vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_3, "");
   vsc_send_user_feedback_string(vscInterface, VSC_USER_DISPLAY_ROW_4, "");
   vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_STANDARD);
+}
+
+void VscProcess::SrcAutoOffEnable(const std_msgs::EmptyConstPtr& msg)
+{
+  if (vscInterface == NULL)
+  {
+    return;
+  }
+
+  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME, 1);
+  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_ENABLE, 1);
+  vsc_send_user_feedback(vscInterface, VSC_USER_AUTO_OFF_ENABLE, 1);
+}
+
+void VscProcess::SrcAutoOffDisable(const std_msgs::EmptyConstPtr& msg)
+{
+  if (vscInterface == NULL)
+  {
+    return;
+  }
+
+  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME, 1);
+  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_ENABLE, 0);
+  vsc_send_user_feedback(vscInterface, VSC_USER_AUTO_OFF_ENABLE, 0);
+  vsc_send_user_feedback(vscInterface, VSC_USER_ORIENTATION_PAUSE__ENABLE, 0);
+  vsc_send_user_feedback(vscInterface, VSC_USER_FREE_FALL_PAUSE_ENABLE, 0);
 }
 
 bool VscProcess::EmergencyStop(EmergencyStop::Request& req, EmergencyStop::Response& res)

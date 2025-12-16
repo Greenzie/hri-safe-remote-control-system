@@ -74,6 +74,8 @@ public:
   void receivedDisplayOnCommand3(const std_msgs::StringConstPtr& msg);
   void receivedDisplayOnCommand4(const std_msgs::StringConstPtr& msg);
   void receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg);
+  void SrcAutoOffEnable(const std_msgs::EmptyConstPtr& msg);
+  void SrcAutoOffDisable(const std_msgs::EmptyConstPtr& msg);
 
 private:
   void readFromVehicle();
