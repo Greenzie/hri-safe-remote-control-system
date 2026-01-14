@@ -114,6 +114,9 @@ VscProcess::VscProcess() : myEStopState(0)
   // Main Loop Timer Callback
   mainLoopTimer = rosNode.createTimer(ros::Duration(1.0 / VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
 
+  // Secondary Timer Callback for Pause Settings
+  srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(5.0), &VscProcess::requestSrcPauseSettings, this);
+
   // Init last time to now
   lastDataRx = ros::Time::now();
   lastRemoteStatusRxTime = lastDataRx;
@@ -295,6 +298,21 @@ void VscProcess::processOneLoop(const ros::TimerEvent&)
   {
     readSettings();
   }
+}
+
+void VscProcess::requestSrcPauseSettings(const ros::TimerEvent&)
+{
+  if (vscInterface == NULL)
+  {
+    return;
+  }
+
+  // Request SRC Pause Settings
+  vsc_send_user_feedback_get(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME);
+  vsc_send_user_feedback_get(vscInterface, VSC_USER_AUTO_OFF_ENABLE);
+  vsc_send_user_feedback_get(vscInterface, VSC_USER_ORIENTATION_PAUSE_ENABLE);
+  vsc_send_user_feedback_get(vscInterface, VSC_USER_FREE_FALL_PAUSE_ENABLE);
+  vsc_send_user_feedback_get(vscInterface, VSC_USER_INACTIVITY_PAUSE_ENABLE);
 }
 
 int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)

@@ -77,6 +77,8 @@ public:
   void receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg);
   void SrcAutoOffEnable(const std_msgs::EmptyConstPtr& msg);
 
+  void requestSrcPauseSettings(const ros::TimerEvent&);
+
 private:
   void readFromVehicle();
   void readSettings();
@@ -111,6 +113,7 @@ private:
   // ROS
   ros::NodeHandle rosNode;
   ros::Timer mainLoopTimer;
+  ros::Timer srcPauseSettingsRequestTimer;
   ros::ServiceServer estopServ, keyValueServ, keyStringServ, vscSettingServ;
   ros::Publisher estopPub;
   ros::Publisher srcHealthPub;
