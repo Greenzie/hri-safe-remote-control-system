@@ -28,6 +28,7 @@ add_message_files(
         DIRECTORY msg
         FILES
         SrcHealth.msg
+        SrcPauseStatus.msg
 )
 
 generate_messages(

@@ -27,6 +27,7 @@
 #include "hri_safe_remote_control_system/KeyValue.h"
 #include "hri_safe_remote_control_system/KeyString.h"
 #include "hri_safe_remote_control_system/SrcHealth.h"
+#include "hri_safe_remote_control_system/SrcPauseStatus.h"
 
 #include "hri_safe_remote_control_system/GetVscSettings.h"
 
@@ -83,6 +84,7 @@ private:
   int handleRemoteStatusMsg(VscMsgType& recvMsg);
   int handleGetSettingInt(VscMsgType& recvMsg);
   int handleGetSettingString(VscMsgType& recvMsg);
+  int handleFeedbackMsg(VscMsgType& recvMsg);
 
   // Local State
   uint32_t myEStopState;
@@ -112,6 +114,7 @@ private:
   ros::ServiceServer estopServ, keyValueServ, keyStringServ, vscSettingServ;
   ros::Publisher estopPub;
   ros::Publisher srcHealthPub;
+  ros::Publisher srcPauseStatusPub;
   ros::Subscriber vibrateSrcSub;
   ros::Subscriber displaySrcOnSub1; // Top Row
   ros::Subscriber displaySrcOnSub2; // Second from Top
@@ -123,7 +126,7 @@ private:
   // Message Handlers
   MsgHandler* joystickHandler;
   SrcHealth* srcHealthMsg;
-
+  SrcPauseStatus* srcPauseStatusMsg;
   /* File descriptor for VSC Interface */
   VscInterfaceType* vscInterface;
 };

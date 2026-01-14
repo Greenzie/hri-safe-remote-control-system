@@ -377,7 +377,7 @@ void vsc_send_user_feedback_get(VscInterfaceType* vscInterface, uint8_t key) {
 
 	/* Fill Message */
 	feedbackGetMsg.msg.msgType = MSG_USER_FEEDBACK_GET;
-	feedbackGetMsg.msg.length = 0x01;
+	feedbackGetMsg.msg.length = sizeof(key);
 	feedbackGetMsg.msg.data[0] = key;
 
 	/* Send Message */

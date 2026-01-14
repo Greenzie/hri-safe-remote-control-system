@@ -469,6 +469,54 @@ int VscProcess::handleGetSettingString(VscMsgType& recvMsg)
   return retVal;
 }
 
+int VscProcess::handleFeedbackMsg(VscMsgType& recvMsg)
+{
+  int retVal = 0;
+
+  if (recvMsg.msg.length == sizeof(UserFeedbackMsgType))
+  {
+    ROS_DEBUG("Received User Feedback Msg from VSC");
+
+    UserFeedbackMsgType* msgPtr = (UserFeedbackMsgType*)recvMsg.msg.data;
+
+    // Handle feedback message based on key
+    switch (msgPtr->key)
+    {
+      case VSC_USER_INACTIVITY_PAUSE_TIME:
+        srcPauseStatusMsg->src_inactivity_pause_time = msgPtr->value;
+        break;
+      case VSC_USER_AUTO_OFF_ENABLE:
+        srcPauseStatusMsg->src_auto_off_enabled = (bool)msgPtr->value;
+        break;
+      case VSC_USER_ORIENTATION_PAUSE_ENABLE:
+        srcPauseStatusMsg->src_orientation_pause_enabled = (bool)msgPtr->value;
+        break;
+      case VSC_USER_FREE_FALL_PAUSE_ENABLE:
+        srcPauseStatusMsg->src_free_fall_pause_enabled = (bool)msgPtr->value;
+        break;
+      case VSC_USER_INACTIVITY_PAUSE_ENABLE:
+        srcPauseStatusMsg->src_inactivity_pause_enabled = (bool)msgPtr->value;
+
+        // Since the statuses will be requested in order, will publish when the final one is received
+        // This assumes that they are transmitted in order the requests are received.
+        srcPauseStatusPub.publish(*srcPauseStatusMsg);
+        break;
+      default:
+        ROS_WARN("Received feedback for unknown key: %d", msgPtr->key);
+        break;
+    }
+  }
+  else
+  {
+    ROS_WARN("RECEIVED USER FEEDBACK WITH INVALID MESSAGE SIZE! Expected: 0x%x, Actual: 0x%x",
+             (unsigned int)sizeof(UserFeedbackMsgType),
+             recvMsg.msg.length);
+    retVal = 1;
+  }
+
+  return retVal;
+}
+
 void VscProcess::readFromVehicle()
 {
   VscMsgType recvMsg;
@@ -503,7 +551,10 @@ void VscProcess::readFromVehicle()
           //			handleGpsMsg(&recvMsg);
           break;
         case MSG_USER_FEEDBACK:
-          //			handleFeedbackMsg(&recvMsg);
+          if(handleFeedbackMsg(recvMsg) == 0)
+          {
+            lastDataRx = ros::Time::now();
+          }
           break;
         case MSG_SETUP_KEY_INT_2:
           //			handleGetSettingInt2(&recvMsg);
