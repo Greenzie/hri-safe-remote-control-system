@@ -365,6 +365,26 @@ void vsc_send_user_feedback_string(VscInterfaceType* vscInterface, uint8_t key, 
 }
 
 /**
+ * Requests the current value of a user feedback key from the SRC
+ * 
+ * This function packages and sends the user feedback data request to the VSC.
+ * 
+ * @param vscInterface VSC Interface Structure
+ * @param key Index for which user feedback value to request
+ */
+void vsc_send_user_feedback_get(VscInterfaceType* vscInterface, uint8_t key) {
+	VscMsgType feedbackGetMsg;
+
+	/* Fill Message */
+	feedbackGetMsg.msg.msgType = MSG_USER_FEEDBACK_GET;
+	feedbackGetMsg.msg.length = 0x01;
+	feedbackGetMsg.msg.data[0] = key;
+
+	/* Send Message */
+	vsc_send_msg(vscInterface, &feedbackGetMsg);
+}
+
+/**
  * Send heartbeat message to VSC
  *
  * This function packages and sends the heartbeat data to the VSC.

@@ -228,20 +228,6 @@ void VscProcess::SrcAutoOffEnable(const std_msgs::EmptyConstPtr& msg)
   vsc_send_user_feedback(vscInterface, VSC_USER_AUTO_OFF_ENABLE, 1);
 }
 
-void VscProcess::SrcAutoOffDisable(const std_msgs::EmptyConstPtr& msg)
-{
-  if (vscInterface == NULL)
-  {
-    return;
-  }
-
-  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME, 1);
-  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_ENABLE, 0);
-  vsc_send_user_feedback(vscInterface, VSC_USER_AUTO_OFF_ENABLE, 0);
-  vsc_send_user_feedback(vscInterface, VSC_USER_ORIENTATION_PAUSE__ENABLE, 0);
-  vsc_send_user_feedback(vscInterface, VSC_USER_FREE_FALL_PAUSE_ENABLE, 0);
-}
-
 bool VscProcess::EmergencyStop(EmergencyStop::Request& req, EmergencyStop::Response& res)
 {
   myEStopState = (uint32_t)req.EmergencyStop;
