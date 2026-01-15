@@ -103,6 +103,9 @@ VscProcess::VscProcess() : myEStopState(0)
   // Publish Vsc Health
   srcHealthPub = rosNode.advertise<hri_safe_remote_control_system::SrcHealth>("safety/health_status", 10);
 
+  // Publish Vsc Pause Status
+  srcPauseStatusPub = rosNode.advertise<hri_safe_remote_control_system::SrcPauseStatus>("safety/pause_status", 10);
+
   // Subscribe for SRC actions
   vibrateSrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
   displaySrcOnSub1 = rosNode.subscribe("/src_display_mode_on_1", 1, &VscProcess::receivedDisplayOnCommand1, this);
