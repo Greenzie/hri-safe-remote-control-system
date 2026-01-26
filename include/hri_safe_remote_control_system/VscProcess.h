@@ -129,7 +129,7 @@ private:
   // Message Handlers
   MsgHandler* joystickHandler;
   SrcHealth* srcHealthMsg;
-  SrcPauseStatus* srcPauseStatusMsg;
+  SrcPauseStatus srcPauseStatusMsg;
   /* File descriptor for VSC Interface */
   VscInterfaceType* vscInterface;
 };

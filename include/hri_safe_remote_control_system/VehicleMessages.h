@@ -55,6 +55,7 @@ enum VSC_STATES_TYPE
 {
   VSC_STATE_SEARCHING = 0x01,
   VSC_STATE_LOCAL = 0x04,
+  VSC_STATE_CONNECTED = 0x06,
   VSC_STATE_OPERATIONAL = 0x09,
   VSC_STATE_MENU = 0x0A,
   VSC_STATE_PAUSE = 0x0B
@@ -308,6 +309,15 @@ typedef struct
   uint8_t key;
   char value[VSC_USER_FEEDBACK_STRING_LENGTH];
 } UserFeedbackStringMsgType;
+
+/** UserFeedbackGetMsgType
+ * 	The Structure for the packed key that is used to request user
+ * 	feedback data from the VSC.
+ */
+typedef struct
+{
+  uint8_t key;
+} UserFeedbackGetMsgType;
 
 /** SCMTargetSetMsgType
  * 	The Structure for the packed target id that is used to transmit the SCM Target

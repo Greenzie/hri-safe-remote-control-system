@@ -374,11 +374,12 @@ void vsc_send_user_feedback_string(VscInterfaceType* vscInterface, uint8_t key, 
  */
 void vsc_send_user_feedback_get(VscInterfaceType* vscInterface, uint8_t key) {
 	VscMsgType feedbackGetMsg;
+	UserFeedbackGetMsgType *msgPtr = (UserFeedbackGetMsgType*) feedbackGetMsg.msg.data;
 
 	/* Fill Message */
 	feedbackGetMsg.msg.msgType = MSG_USER_FEEDBACK_GET;
-	feedbackGetMsg.msg.length = sizeof(key);
-	feedbackGetMsg.msg.data[0] = key;
+	feedbackGetMsg.msg.length = sizeof(UserFeedbackGetMsgType);
+	msgPtr->key = key;
 
 	/* Send Message */
 	vsc_send_msg(vscInterface, &feedbackGetMsg);

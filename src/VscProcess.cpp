@@ -118,7 +118,7 @@ VscProcess::VscProcess() : myEStopState(0)
   mainLoopTimer = rosNode.createTimer(ros::Duration(1.0 / VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
 
   // Secondary Timer Callback for Pause Settings
-  srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(5.0), &VscProcess::requestSrcPauseSettings, this);
+  srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(2.0), &VscProcess::requestSrcPauseSettings, this);
 
   // Init last time to now
   lastDataRx = ros::Time::now();
@@ -310,6 +310,15 @@ void VscProcess::requestSrcPauseSettings(const ros::TimerEvent&)
     return;
   }
 
+  if (latest_vsc_mode_ != VSC_STATE_CONNECTED &&
+      latest_vsc_mode_ != VSC_STATE_OPERATIONAL && 
+      latest_vsc_mode_ != VSC_STATE_MENU &&
+      latest_vsc_mode_ != VSC_STATE_PAUSE)
+  {
+    return;
+  }
+
+  ROS_DEBUG("Requesting SRC Pause Settings from VSC...");
   // Request SRC Pause Settings
   vsc_send_user_feedback_get(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME);
   vsc_send_user_feedback_get(vscInterface, VSC_USER_AUTO_OFF_ENABLE);
@@ -494,36 +503,38 @@ int VscProcess::handleFeedbackMsg(VscMsgType& recvMsg)
 {
   int retVal = 0;
 
+  ROS_DEBUG("Received User Feedback Msg from VSC");
   if (recvMsg.msg.length == sizeof(UserFeedbackMsgType))
   {
-    ROS_DEBUG("Received User Feedback Msg from VSC");
-
-    UserFeedbackMsgType* msgPtr = (UserFeedbackMsgType*)recvMsg.msg.data;
+    uint32_t value = recvMsg.msg.data[1] |
+                     (recvMsg.msg.data[2] << 8) |
+                     (recvMsg.msg.data[3] << 16) |
+                     (recvMsg.msg.data[4] << 24);
 
     // Handle feedback message based on key
-    switch (msgPtr->key)
+    switch (recvMsg.msg.data[0])
     {
       case VSC_USER_INACTIVITY_PAUSE_TIME:
-        srcPauseStatusMsg->src_inactivity_pause_time = msgPtr->value;
+        srcPauseStatusMsg.src_inactivity_pause_time = value;
         break;
       case VSC_USER_AUTO_OFF_ENABLE:
-        srcPauseStatusMsg->src_auto_off_enabled = (bool)msgPtr->value;
+        srcPauseStatusMsg.src_auto_off_enabled = (bool)value;
         break;
       case VSC_USER_ORIENTATION_PAUSE_ENABLE:
-        srcPauseStatusMsg->src_orientation_pause_enabled = (bool)msgPtr->value;
+        srcPauseStatusMsg.src_orientation_pause_enabled = (bool)value;
         break;
       case VSC_USER_FREE_FALL_PAUSE_ENABLE:
-        srcPauseStatusMsg->src_free_fall_pause_enabled = (bool)msgPtr->value;
+        srcPauseStatusMsg.src_free_fall_pause_enabled = (bool)value;
         break;
       case VSC_USER_INACTIVITY_PAUSE_ENABLE:
-        srcPauseStatusMsg->src_inactivity_pause_enabled = (bool)msgPtr->value;
+        srcPauseStatusMsg.src_inactivity_pause_enabled = (bool)value;
 
         // Since the statuses will be requested in order, will publish when the final one is received
         // This assumes that they are transmitted in order the requests are received.
-        srcPauseStatusPub.publish(*srcPauseStatusMsg);
+        srcPauseStatusPub.publish(srcPauseStatusMsg);
         break;
       default:
-        ROS_WARN("Received feedback for unknown key: %d", msgPtr->key);
+        ROS_DEBUG("Received feedback for unknown key: %d", recvMsg.msg.data[0]);
         break;
     }
   }
