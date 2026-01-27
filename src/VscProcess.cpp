@@ -118,7 +118,7 @@ VscProcess::VscProcess() : myEStopState(0)
   mainLoopTimer = rosNode.createTimer(ros::Duration(1.0 / VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
 
   // Secondary Timer Callback for Pause Settings
-  srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration((double)VSC_PAUSE_SETTINGS_RATE), &VscProcess::requestSrcPauseSettings, this);
+  srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(static_cast<double>(VSC_PAUSE_SETTINGS_RATE_S)), &VscProcess::requestSrcPauseSettings, this);
 
   // Init last time to now
   lastDataRx = ros::Time::now();
@@ -518,16 +518,16 @@ int VscProcess::handleFeedbackMsg(VscMsgType& recvMsg)
         srcPauseStatusMsg.src_inactivity_pause_time = value;
         break;
       case VSC_USER_AUTO_OFF_ENABLE:
-        srcPauseStatusMsg.src_auto_off_enabled = (bool)value;
+        srcPauseStatusMsg.src_auto_off_enabled = static_cast<bool>(value);
         break;
       case VSC_USER_ORIENTATION_PAUSE_ENABLE:
-        srcPauseStatusMsg.src_orientation_pause_enabled = (bool)value;
+        srcPauseStatusMsg.src_orientation_pause_enabled = static_cast<bool>(value);
         break;
       case VSC_USER_FREE_FALL_PAUSE_ENABLE:
-        srcPauseStatusMsg.src_free_fall_pause_enabled = (bool)value;
+        srcPauseStatusMsg.src_free_fall_pause_enabled = static_cast<bool>(value);
         break;
       case VSC_USER_INACTIVITY_PAUSE_ENABLE:
-        srcPauseStatusMsg.src_inactivity_pause_enabled = (bool)value;
+        srcPauseStatusMsg.src_inactivity_pause_enabled = static_cast<bool>(value);
 
         // Since the statuses will be requested in order, will publish when the final one is received
         // This assumes that they are transmitted in order the requests are received.
