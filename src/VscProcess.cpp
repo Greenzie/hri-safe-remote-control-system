@@ -143,7 +143,7 @@ VscProcess::~VscProcess()
   {
     SrcAutoOffEnable(clear_msg);
   }
-  
+
   if (vscInterface != NULL)
   {
     // Destroy vscInterface
@@ -237,7 +237,7 @@ void VscProcess::SrcAutoOffEnable(const std_msgs::EmptyConstPtr& msg)
     return;
   }
 
-  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME, 1);
+  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME, 3);
   vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_ENABLE, 1);
   vsc_send_user_feedback(vscInterface, VSC_USER_AUTO_OFF_ENABLE, 1);
 }
