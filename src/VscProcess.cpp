@@ -82,6 +82,11 @@ VscProcess::VscProcess() : myEStopState(0)
     }
   }
 
+  if (nh.getParam("src_auto_off_enable", src_auto_off_enabled_))
+  {
+    ROS_INFO("SRC Auto-Off Enable set to:  %s", src_auto_off_enabled_ ? "true" : "false");
+  }
+
   // Grab VSC Settings
   readSettings();
 
@@ -134,8 +139,11 @@ VscProcess::~VscProcess()
   // before destroying, reset the SRC display for next time
   std_msgs::EmptyConstPtr clear_msg;
   receivedDisplayOffCommand(clear_msg);
-  SrcAutoOffEnable(clear_msg);
-
+  if (src_auto_off_enabled_)
+  {
+    SrcAutoOffEnable(clear_msg);
+  }
+  
   if (vscInterface != NULL)
   {
     // Destroy vscInterface
@@ -229,7 +237,7 @@ void VscProcess::SrcAutoOffEnable(const std_msgs::EmptyConstPtr& msg)
     return;
   }
 
-  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME, 2);
+  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME, 1);
   vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_ENABLE, 1);
   vsc_send_user_feedback(vscInterface, VSC_USER_AUTO_OFF_ENABLE, 1);
 }
