@@ -111,6 +111,13 @@ private:
   // cached
   uint8_t latest_vsc_mode_{ 0 };
 
+  // settings updated booleans
+  bool src_inactivity_time_received_{ false };
+  bool src_auto_off_enabled_received_{ false };
+  bool src_orientation_pause_enabled_received_{ false };
+  bool src_free_fall_pause_enabled_received_{ false };
+  bool src_inactivity_pause_enabled_received_{ false };
+
   // ROS
   ros::NodeHandle rosNode;
   ros::Timer mainLoopTimer;

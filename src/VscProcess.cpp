@@ -516,26 +516,40 @@ int VscProcess::handleFeedbackMsg(VscMsgType& recvMsg)
     {
       case VSC_USER_INACTIVITY_PAUSE_TIME:
         srcPauseStatusMsg.src_inactivity_pause_time = value;
+        src_inactivity_time_received_ = true;
         break;
       case VSC_USER_AUTO_OFF_ENABLE:
         srcPauseStatusMsg.src_auto_off_enabled = static_cast<bool>(value);
+        src_auto_off_enabled_received_ = true;
         break;
       case VSC_USER_ORIENTATION_PAUSE_ENABLE:
         srcPauseStatusMsg.src_orientation_pause_enabled = static_cast<bool>(value);
+        src_orientation_pause_enabled_received_ = true;
         break;
       case VSC_USER_FREE_FALL_PAUSE_ENABLE:
         srcPauseStatusMsg.src_free_fall_pause_enabled = static_cast<bool>(value);
+        src_free_fall_pause_enabled_received_ = true;
         break;
       case VSC_USER_INACTIVITY_PAUSE_ENABLE:
         srcPauseStatusMsg.src_inactivity_pause_enabled = static_cast<bool>(value);
-
-        // Since the statuses will be requested in order, will publish when the final one is received
-        // This assumes that they are transmitted in order the requests are received.
-        srcPauseStatusPub.publish(srcPauseStatusMsg);
+        src_inactivity_pause_enabled_received_ = true;
         break;
       default:
         ROS_DEBUG("Received feedback for unknown key: %d", recvMsg.msg.data[0]);
         break;
+    }
+    if (src_inactivity_time_received_ &&
+        src_auto_off_enabled_received_ &&
+        src_orientation_pause_enabled_received_ &&
+        src_free_fall_pause_enabled_received_ &&
+        src_inactivity_pause_enabled_received_)
+    {
+      src_inactivity_time_received_ = false;
+      src_auto_off_enabled_received_ = false;
+      src_orientation_pause_enabled_received_ = false;
+      src_free_fall_pause_enabled_received_ = false;
+      src_inactivity_pause_enabled_received_ = false;
+      srcPauseStatusPub.publish(srcPauseStatusMsg);
     }
   }
   else
