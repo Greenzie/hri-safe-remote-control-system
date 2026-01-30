@@ -123,7 +123,7 @@ VscProcess::VscProcess() : myEStopState(0)
   mainLoopTimer = rosNode.createTimer(ros::Duration(1.0 / VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
 
   // Secondary Timer Callback for Pause Settings
-  srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(static_cast<double>(VSC_PAUSE_SETTINGS_RATE_S)), &VscProcess::requestSrcPauseSettings, this);
+  srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(static_cast<double>(VSC_PAUSE_SETTINGS_PERIOD_S)), &VscProcess::requestSrcPauseSettings, this);
 
   // Init last time to now
   lastDataRx = ros::Time::now();
@@ -141,7 +141,7 @@ VscProcess::~VscProcess()
   receivedDisplayOffCommand(clear_msg);
   if (src_auto_off_enabled_)
   {
-    SrcAutoOffEnable(clear_msg);
+    SrcAutoOffEnable();
   }
 
   if (vscInterface != NULL)
@@ -230,7 +230,7 @@ void VscProcess::receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg)
   vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_STANDARD);
 }
 
-void VscProcess::SrcAutoOffEnable(const std_msgs::EmptyConstPtr& msg)
+void VscProcess::SrcAutoOffEnable()
 {
   if (vscInterface == NULL)
   {
@@ -327,7 +327,8 @@ void VscProcess::requestSrcPauseSettings(const ros::TimerEvent&)
   }
 
   ROS_DEBUG("Requesting SRC Pause Settings from VSC...");
-  // Request SRC Pause Settings
+
+  // Request SRC Pause Settings, we have to request each key separately
   vsc_send_user_feedback_get(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME);
   vsc_send_user_feedback_get(vscInterface, VSC_USER_AUTO_OFF_ENABLE);
   vsc_send_user_feedback_get(vscInterface, VSC_USER_ORIENTATION_PAUSE_ENABLE);
@@ -546,6 +547,9 @@ int VscProcess::handleFeedbackMsg(VscMsgType& recvMsg)
         ROS_DEBUG("Received feedback for unknown key: %d", recvMsg.msg.data[0]);
         break;
     }
+
+    // Due to receiving each key value separately, we only publish after we have received all 5 values
+    // then we reset the value received flags
     if (src_inactivity_time_received_ &&
         src_auto_off_enabled_received_ &&
         src_orientation_pause_enabled_received_ &&

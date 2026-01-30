@@ -52,7 +52,7 @@ struct ErrorCounterType
  */
 const unsigned int VSC_INTERFACE_RATE = 50; /* 50 Hz */
 const unsigned int VSC_HEARTBEAT_RATE = 20; /* 20 Hz */
-const unsigned int VSC_PAUSE_SETTINGS_RATE_S = 5; /* 0.2 Hz */
+const unsigned int VSC_PAUSE_SETTINGS_PERIOD_S = 5; /* 0.2 Hz */
 
 class VscProcess
 {
@@ -76,7 +76,7 @@ public:
   void receivedDisplayOnCommand3(const std_msgs::StringConstPtr& msg);
   void receivedDisplayOnCommand4(const std_msgs::StringConstPtr& msg);
   void receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg);
-  void SrcAutoOffEnable(const std_msgs::EmptyConstPtr& msg);
+  void SrcAutoOffEnable();
 
   void requestSrcPauseSettings(const ros::TimerEvent&);
 
