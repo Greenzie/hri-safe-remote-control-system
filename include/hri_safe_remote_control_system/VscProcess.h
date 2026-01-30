@@ -27,6 +27,7 @@
 #include "hri_safe_remote_control_system/KeyValue.h"
 #include "hri_safe_remote_control_system/KeyString.h"
 #include "hri_safe_remote_control_system/SrcHealth.h"
+#include "hri_safe_remote_control_system/SrcPauseStatus.h"
 
 #include "hri_safe_remote_control_system/GetVscSettings.h"
 
@@ -51,6 +52,7 @@ struct ErrorCounterType
  */
 const unsigned int VSC_INTERFACE_RATE = 50; /* 50 Hz */
 const unsigned int VSC_HEARTBEAT_RATE = 20; /* 20 Hz */
+const double VSC_PAUSE_SETTINGS_PERIOD_S = 5; /* 0.2 Hz */
 
 class VscProcess
 {
@@ -74,6 +76,9 @@ public:
   void receivedDisplayOnCommand3(const std_msgs::StringConstPtr& msg);
   void receivedDisplayOnCommand4(const std_msgs::StringConstPtr& msg);
   void receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg);
+  void srcAutoOffEnable();
+
+  void requestSrcPauseSettings(const ros::TimerEvent&);
 
 private:
   void readFromVehicle();
@@ -82,6 +87,7 @@ private:
   int handleRemoteStatusMsg(VscMsgType& recvMsg);
   int handleGetSettingInt(VscMsgType& recvMsg);
   int handleGetSettingString(VscMsgType& recvMsg);
+  int handleFeedbackMsg(VscMsgType& recvMsg);
 
   // Local State
   uint32_t myEStopState;
@@ -90,6 +96,7 @@ private:
   int serial_speed_ = 115200;
   bool vsc_initialized_ = false;
   double reconnect_time_ = 5.0;
+  bool src_auto_off_enabled_{ true };
 
 
   // Setting Grab Values
@@ -105,12 +112,21 @@ private:
   // cached
   uint8_t latest_vsc_mode_{ 0 };
 
+  // settings updated booleans
+  bool src_inactivity_time_received_{ false };
+  bool src_auto_off_enabled_received_{ false };
+  bool src_orientation_pause_enabled_received_{ false };
+  bool src_free_fall_pause_enabled_received_{ false };
+  bool src_inactivity_pause_enabled_received_{ false };
+
   // ROS
   ros::NodeHandle rosNode;
   ros::Timer mainLoopTimer;
+  ros::Timer srcPauseSettingsRequestTimer;
   ros::ServiceServer estopServ, keyValueServ, keyStringServ, vscSettingServ;
   ros::Publisher estopPub;
   ros::Publisher srcHealthPub;
+  ros::Publisher srcPauseStatusPub;
   ros::Subscriber vibrateSrcSub;
   ros::Subscriber displaySrcOnSub1; // Top Row
   ros::Subscriber displaySrcOnSub2; // Second from Top
@@ -122,7 +138,7 @@ private:
   // Message Handlers
   MsgHandler* joystickHandler;
   SrcHealth* srcHealthMsg;
-
+  SrcPauseStatus srcPauseStatusMsg;
   /* File descriptor for VSC Interface */
   VscInterfaceType* vscInterface;
 };

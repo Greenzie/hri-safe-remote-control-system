@@ -2,6 +2,7 @@
   <!-- Start a serial interface with the vsc on "safety_port" -->
   <arg name="safety_port" default="/dev/ttyACM0"/>
   <arg name="vsc_interface_enable"  default="true"/>
+  <arg name="src_auto_off_enable" default="false"/>
     <group if="$(arg vsc_interface_enable)">
       <!-- Start a serial interface to vsc on 'safety_port' -->
         <node name="vsc_serial_interface"
@@ -11,6 +12,7 @@
               respawn_delay="1">
           <param name="port" value="$(arg safety_port)"/>
           <param name="useArrowsAsAxes" type="bool" value="false"/>
+          <param name="src_auto_off_enable" type="bool" value="$(arg src_auto_off_enable)"/>
         </node>
     </group>
 </launch>

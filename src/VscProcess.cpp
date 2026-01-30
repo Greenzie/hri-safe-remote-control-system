@@ -82,6 +82,11 @@ VscProcess::VscProcess() : myEStopState(0)
     }
   }
 
+  if (nh.getParam("src_auto_off_enable", src_auto_off_enabled_))
+  {
+    ROS_DEBUG("SRC Auto-Off Enable set to:  %s", src_auto_off_enabled_ ? "true" : "false");
+  }
+
   // Grab VSC Settings
   readSettings();
 
@@ -103,6 +108,9 @@ VscProcess::VscProcess() : myEStopState(0)
   // Publish Vsc Health
   srcHealthPub = rosNode.advertise<hri_safe_remote_control_system::SrcHealth>("safety/health_status", 10);
 
+  // Publish Vsc Pause Status
+  srcPauseStatusPub = rosNode.advertise<hri_safe_remote_control_system::SrcPauseStatus>("safety/pause_status", 10);
+
   // Subscribe for SRC actions
   vibrateSrcSub = rosNode.subscribe("/src_vibrate", 1, &VscProcess::receivedVibration, this);
   displaySrcOnSub1 = rosNode.subscribe("/src_display_mode_on_1", 1, &VscProcess::receivedDisplayOnCommand1, this);
@@ -113,6 +121,9 @@ VscProcess::VscProcess() : myEStopState(0)
 
   // Main Loop Timer Callback
   mainLoopTimer = rosNode.createTimer(ros::Duration(1.0 / VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
+
+  // Secondary Timer Callback for Pause Settings
+  srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(VSC_PAUSE_SETTINGS_PERIOD_S), &VscProcess::requestSrcPauseSettings, this);
 
   // Init last time to now
   lastDataRx = ros::Time::now();
@@ -128,6 +139,10 @@ VscProcess::~VscProcess()
   // before destroying, reset the SRC display for next time
   std_msgs::EmptyConstPtr clear_msg;
   receivedDisplayOffCommand(clear_msg);
+  if (src_auto_off_enabled_)
+  {
+    srcAutoOffEnable();
+  }
 
   if (vscInterface != NULL)
   {
@@ -215,6 +230,21 @@ void VscProcess::receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg)
   vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_STANDARD);
 }
 
+void VscProcess::srcAutoOffEnable()
+{
+  if (vscInterface == NULL)
+  {
+    return;
+  }
+
+  const uint32_t INIACTIVITY_PAUSE_TIME_MINUTES = 3;
+  const uint32_t ENABLE_PAUSE_SETTING = 1;
+  
+  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME, INIACTIVITY_PAUSE_TIME_MINUTES);
+  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_ENABLE, ENABLE_PAUSE_SETTING);
+  vsc_send_user_feedback(vscInterface, VSC_USER_AUTO_OFF_ENABLE, ENABLE_PAUSE_SETTING);
+}
+
 bool VscProcess::EmergencyStop(EmergencyStop::Request& req, EmergencyStop::Response& res)
 {
   myEStopState = (uint32_t)req.EmergencyStop;
@@ -282,6 +312,31 @@ void VscProcess::processOneLoop(const ros::TimerEvent&)
   {
     readSettings();
   }
+}
+
+void VscProcess::requestSrcPauseSettings(const ros::TimerEvent&)
+{
+  if (vscInterface == NULL)
+  {
+    return;
+  }
+
+  if (latest_vsc_mode_ != VSC_STATE_CONNECTED &&
+      latest_vsc_mode_ != VSC_STATE_OPERATIONAL && 
+      latest_vsc_mode_ != VSC_STATE_MENU &&
+      latest_vsc_mode_ != VSC_STATE_PAUSE)
+  {
+    return;
+  }
+
+  ROS_DEBUG("Requesting SRC Pause Settings from VSC...");
+
+  // Request SRC Pause Settings, we have to request each key separately
+  vsc_send_user_feedback_get(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME);
+  vsc_send_user_feedback_get(vscInterface, VSC_USER_AUTO_OFF_ENABLE);
+  vsc_send_user_feedback_get(vscInterface, VSC_USER_ORIENTATION_PAUSE_ENABLE);
+  vsc_send_user_feedback_get(vscInterface, VSC_USER_FREE_FALL_PAUSE_ENABLE);
+  vsc_send_user_feedback_get(vscInterface, VSC_USER_INACTIVITY_PAUSE_ENABLE);
 }
 
 int VscProcess::handleHeartbeatMsg(VscMsgType& recvMsg)
@@ -456,6 +511,73 @@ int VscProcess::handleGetSettingString(VscMsgType& recvMsg)
   return retVal;
 }
 
+int VscProcess::handleFeedbackMsg(VscMsgType& recvMsg)
+{
+  int retVal = 0;
+
+  ROS_DEBUG("Received User Feedback Msg from VSC");
+  if (recvMsg.msg.length == sizeof(UserFeedbackMsgType))
+  {
+    uint32_t value = recvMsg.msg.data[1] |
+                     (recvMsg.msg.data[2] << 8) |
+                     (recvMsg.msg.data[3] << 16) |
+                     (recvMsg.msg.data[4] << 24);
+
+    // Handle feedback message based on key
+    switch (recvMsg.msg.data[0])
+    {
+      case VSC_USER_INACTIVITY_PAUSE_TIME:
+        srcPauseStatusMsg.src_inactivity_pause_time = value;
+        src_inactivity_time_received_ = true;
+        break;
+      case VSC_USER_AUTO_OFF_ENABLE:
+        srcPauseStatusMsg.src_auto_off_enabled = static_cast<bool>(value);
+        src_auto_off_enabled_received_ = true;
+        break;
+      case VSC_USER_ORIENTATION_PAUSE_ENABLE:
+        srcPauseStatusMsg.src_orientation_pause_enabled = static_cast<bool>(value);
+        src_orientation_pause_enabled_received_ = true;
+        break;
+      case VSC_USER_FREE_FALL_PAUSE_ENABLE:
+        srcPauseStatusMsg.src_free_fall_pause_enabled = static_cast<bool>(value);
+        src_free_fall_pause_enabled_received_ = true;
+        break;
+      case VSC_USER_INACTIVITY_PAUSE_ENABLE:
+        srcPauseStatusMsg.src_inactivity_pause_enabled = static_cast<bool>(value);
+        src_inactivity_pause_enabled_received_ = true;
+        break;
+      default:
+        ROS_DEBUG("Received feedback for unknown key: %d", recvMsg.msg.data[0]);
+        break;
+    }
+
+    // Due to receiving each key value separately, we only publish after we have received all 5 values
+    // then we reset the value received flags
+    if (src_inactivity_time_received_ &&
+        src_auto_off_enabled_received_ &&
+        src_orientation_pause_enabled_received_ &&
+        src_free_fall_pause_enabled_received_ &&
+        src_inactivity_pause_enabled_received_)
+    {
+      src_inactivity_time_received_ = false;
+      src_auto_off_enabled_received_ = false;
+      src_orientation_pause_enabled_received_ = false;
+      src_free_fall_pause_enabled_received_ = false;
+      src_inactivity_pause_enabled_received_ = false;
+      srcPauseStatusPub.publish(srcPauseStatusMsg);
+    }
+  }
+  else
+  {
+    ROS_WARN("RECEIVED USER FEEDBACK WITH INVALID MESSAGE SIZE! Expected: 0x%x, Actual: 0x%x",
+             (uint32_t)sizeof(UserFeedbackMsgType),
+             recvMsg.msg.length);
+    retVal = 1;
+  }
+
+  return retVal;
+}
+
 void VscProcess::readFromVehicle()
 {
   VscMsgType recvMsg;
@@ -490,7 +612,10 @@ void VscProcess::readFromVehicle()
           //			handleGpsMsg(&recvMsg);
           break;
         case MSG_USER_FEEDBACK:
-          //			handleFeedbackMsg(&recvMsg);
+          if(handleFeedbackMsg(recvMsg) == 0)
+          {
+            lastDataRx = ros::Time::now();
+          }
           break;
         case MSG_SETUP_KEY_INT_2:
           //			handleGetSettingInt2(&recvMsg);

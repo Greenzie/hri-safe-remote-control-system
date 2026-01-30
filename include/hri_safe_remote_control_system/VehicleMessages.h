@@ -55,6 +55,7 @@ enum VSC_STATES_TYPE
 {
   VSC_STATE_SEARCHING = 0x01,
   VSC_STATE_LOCAL = 0x04,
+  VSC_STATE_CONNECTED = 0x06,
   VSC_STATE_OPERATIONAL = 0x09,
   VSC_STATE_MENU = 0x0A,
   VSC_STATE_PAUSE = 0x0B
@@ -76,6 +77,7 @@ enum VSC_MESSAGE_TYPE
   MSG_VSC_RX_STATUS_DIAG = 0x26,
   MSG_USER_FEEDBACK = 0x30,
   MSG_USER_FEEDBACK_STRING = 0x31,
+  MSG_USER_FEEDBACK_GET = 0x32,
   MSG_USER_VALUE_UNUSED = 0x33,
   MSG_NSC_HEARTBEAT = 0x40,
   MSG_TIMESTAMP = 0x50,
@@ -122,6 +124,11 @@ enum VSC_USER_FEEDBACK_KEY_TYPE
   VSC_USER_LEFT_MOTOR_INTENSITY = 10,
   VSC_USER_RIGHT_MOTOR_INTENSITY = 11,
   VSC_USER_BOTH_MOTOR_INTENSITY = 12,
+  VSC_USER_INACTIVITY_PAUSE_TIME = 80,
+  VSC_USER_AUTO_OFF_ENABLE = 81,
+  VSC_USER_ORIENTATION_PAUSE_ENABLE = 82,
+  VSC_USER_FREE_FALL_PAUSE_ENABLE = 83,
+  VSC_USER_INACTIVITY_PAUSE_ENABLE = 84,
   VSC_USER_DISPLAY_ROW_1 = 90,
   VSC_USER_DISPLAY_ROW_2 = 91,
   VSC_USER_DISPLAY_ROW_3 = 92,
@@ -302,6 +309,15 @@ typedef struct
   uint8_t key;
   char value[VSC_USER_FEEDBACK_STRING_LENGTH];
 } UserFeedbackStringMsgType;
+
+/** UserFeedbackGetMsgType
+ * 	The Structure for the packed key that is used to request user
+ * 	feedback data from the VSC.
+ */
+typedef struct
+{
+  uint8_t key;
+} UserFeedbackGetMsgType;
 
 /** SCMTargetSetMsgType
  * 	The Structure for the packed target id that is used to transmit the SCM Target
