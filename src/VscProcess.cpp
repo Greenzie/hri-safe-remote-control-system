@@ -84,7 +84,7 @@ VscProcess::VscProcess() : myEStopState(0)
 
   if (nh.getParam("src_auto_off_enable", src_auto_off_enabled_))
   {
-    ROS_INFO("SRC Auto-Off Enable set to:  %s", src_auto_off_enabled_ ? "true" : "false");
+    ROS_DEBUG("SRC Auto-Off Enable set to:  %s", src_auto_off_enabled_ ? "true" : "false");
   }
 
   // Grab VSC Settings
@@ -141,7 +141,7 @@ VscProcess::~VscProcess()
   receivedDisplayOffCommand(clear_msg);
   if (src_auto_off_enabled_)
   {
-    SrcAutoOffEnable();
+    srcAutoOffEnable();
   }
 
   if (vscInterface != NULL)
@@ -230,16 +230,19 @@ void VscProcess::receivedDisplayOffCommand(const std_msgs::EmptyConstPtr& msg)
   vsc_send_user_feedback(vscInterface, VSC_USER_DISPLAY_MODE, DISPLAY_MODE_STANDARD);
 }
 
-void VscProcess::SrcAutoOffEnable()
+void VscProcess::srcAutoOffEnable()
 {
   if (vscInterface == NULL)
   {
     return;
   }
 
-  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME, 3);
-  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_ENABLE, 1);
-  vsc_send_user_feedback(vscInterface, VSC_USER_AUTO_OFF_ENABLE, 1);
+  const uint32_t INIACTIVITY_PAUSE_TIME_MINUTES = 3;
+  const uint32_t ENABLE_PAUSE_SETTING = 1;
+  
+  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_TIME, INIACTIVITY_PAUSE_TIME_MINUTES);
+  vsc_send_user_feedback(vscInterface, VSC_USER_INACTIVITY_PAUSE_ENABLE, ENABLE_PAUSE_SETTING);
+  vsc_send_user_feedback(vscInterface, VSC_USER_AUTO_OFF_ENABLE, ENABLE_PAUSE_SETTING);
 }
 
 bool VscProcess::EmergencyStop(EmergencyStop::Request& req, EmergencyStop::Response& res)
@@ -567,7 +570,7 @@ int VscProcess::handleFeedbackMsg(VscMsgType& recvMsg)
   else
   {
     ROS_WARN("RECEIVED USER FEEDBACK WITH INVALID MESSAGE SIZE! Expected: 0x%x, Actual: 0x%x",
-             (unsigned int)sizeof(UserFeedbackMsgType),
+             (uint32_t)sizeof(UserFeedbackMsgType),
              recvMsg.msg.length);
     retVal = 1;
   }
