@@ -123,7 +123,7 @@ VscProcess::VscProcess() : myEStopState(0)
   mainLoopTimer = rosNode.createTimer(ros::Duration(1.0 / VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
 
   // Secondary Timer Callback for Pause Settings
-  srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(static_cast<double>(VSC_PAUSE_SETTINGS_PERIOD_S)), &VscProcess::requestSrcPauseSettings, this);
+  srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(VSC_PAUSE_SETTINGS_PERIOD_S), &VscProcess::requestSrcPauseSettings, this);
 
   // Init last time to now
   lastDataRx = ros::Time::now();
