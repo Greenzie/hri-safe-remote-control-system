@@ -1,3 +1,9 @@
+ros-noetic-hri-safe-remote-control-system (0.2.0-focal5) focal; urgency=medium
+
+  * Added Src Auto Off and Pause Setting Output behind configurable params
+
+ -- Nicholas Johnson <njohnson@greenzie.com>  Mon, 13 Apr 2026 11:26:30 -0400
+ 
 ros-noetic-hri-safe-remote-control-system (0.2.0-focal4) focal; urgency=medium
 
   * Updated Display messaging interface

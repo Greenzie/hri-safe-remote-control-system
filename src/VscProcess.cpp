@@ -82,10 +82,11 @@ VscProcess::VscProcess() : myEStopState(0)
     }
   }
 
-  if (nh.getParam("src_auto_off_enable", src_auto_off_enabled_))
-  {
-    ROS_DEBUG("SRC Auto-Off Enable set to:  %s", src_auto_off_enabled_ ? "true" : "false");
-  }
+  nh.getParam("src_auto_off_enable", src_auto_off_enabled_);
+  ROS_DEBUG("SRC Auto-Off Enable set to:  %s", src_auto_off_enabled_ ? "true" : "false");
+
+  nh.getParam("src_pause_settings_message_enable", src_pause_settings_message_enabled_);
+  ROS_DEBUG("SRC Pause Settings Message Enable set to:  %s", src_pause_settings_message_enabled_ ? "true" : "false");
 
   // Grab VSC Settings
   readSettings();
@@ -123,7 +124,10 @@ VscProcess::VscProcess() : myEStopState(0)
   mainLoopTimer = rosNode.createTimer(ros::Duration(1.0 / VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
 
   // Secondary Timer Callback for Pause Settings
-  srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(VSC_PAUSE_SETTINGS_PERIOD_S), &VscProcess::requestSrcPauseSettings, this);
+  if (src_pause_settings_message_enabled_)
+  {
+    srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(VSC_PAUSE_SETTINGS_PERIOD_S), &VscProcess::requestSrcPauseSettings, this);
+  }
 
   // Init last time to now
   lastDataRx = ros::Time::now();
@@ -612,9 +616,12 @@ void VscProcess::readFromVehicle()
           //			handleGpsMsg(&recvMsg);
           break;
         case MSG_USER_FEEDBACK:
-          if(handleFeedbackMsg(recvMsg) == 0)
+          if (src_pause_settings_message_enabled_) 
           {
-            lastDataRx = ros::Time::now();
+            if(handleFeedbackMsg(recvMsg) == 0)
+            {
+              lastDataRx = ros::Time::now();
+            }
           }
           break;
         case MSG_SETUP_KEY_INT_2:
