@@ -123,7 +123,7 @@ VscProcess::VscProcess() : myEStopState(0)
   mainLoopTimer = rosNode.createTimer(ros::Duration(1.0 / VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
 
   // Secondary Timer Callback for Pause Settings
-  srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(VSC_PAUSE_SETTINGS_PERIOD_S), &VscProcess::requestSrcPauseSettings, this);
+  // srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(VSC_PAUSE_SETTINGS_PERIOD_S), &VscProcess::requestSrcPauseSettings, this);
 
   // Init last time to now
   lastDataRx = ros::Time::now();
@@ -141,7 +141,7 @@ VscProcess::~VscProcess()
   receivedDisplayOffCommand(clear_msg);
   if (src_auto_off_enabled_)
   {
-    srcAutoOffEnable();
+    // srcAutoOffEnable();
   }
 
   if (vscInterface != NULL)
@@ -612,10 +612,10 @@ void VscProcess::readFromVehicle()
           //			handleGpsMsg(&recvMsg);
           break;
         case MSG_USER_FEEDBACK:
-          if(handleFeedbackMsg(recvMsg) == 0)
-          {
-            lastDataRx = ros::Time::now();
-          }
+          // if(handleFeedbackMsg(recvMsg) == 0)
+          // {
+          //   lastDataRx = ros::Time::now();
+          // }
           break;
         case MSG_SETUP_KEY_INT_2:
           //			handleGetSettingInt2(&recvMsg);
