@@ -620,10 +620,13 @@ void VscProcess::readFromVehicle()
           //			handleGpsMsg(&recvMsg);
           break;
         case MSG_USER_FEEDBACK:
-          // if(handleFeedbackMsg(recvMsg) == 0)
-          // {
-          //   lastDataRx = ros::Time::now();
-          // }
+          if (src_pause_settings_message_enabled_) 
+          {
+            if(handleFeedbackMsg(recvMsg) == 0)
+            {
+              lastDataRx = ros::Time::now();
+            }
+          }
           break;
         case MSG_SETUP_KEY_INT_2:
           //			handleGetSettingInt2(&recvMsg);
