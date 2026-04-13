@@ -82,15 +82,11 @@ VscProcess::VscProcess() : myEStopState(0)
     }
   }
 
-  if (nh.getParam("src_auto_off_enable", src_auto_off_enabled_))
-  {
-    ROS_DEBUG("SRC Auto-Off Enable set to:  %s", src_auto_off_enabled_ ? "true" : "false");
-  }
+  nh.getParam("src_auto_off_enable", src_auto_off_enabled_);
+  ROS_DEBUG("SRC Auto-Off Enable set to:  %s", src_auto_off_enabled_ ? "true" : "false");
 
-  if (nh.getParam("src_pause_settings_message_enable", src_pause_settings_message_enabled_))
-  {
-    ROS_DEBUG("SRC Pause Settings Message Enable set to:  %s", src_pause_settings_message_enabled_ ? "true" : "false");
-  }
+  nh.getParam("src_pause_settings_message_enable", src_pause_settings_message_enabled_);
+  ROS_DEBUG("SRC Pause Settings Message Enable set to:  %s", src_pause_settings_message_enabled_ ? "true" : "false");
 
   // Grab VSC Settings
   readSettings();
