@@ -96,7 +96,8 @@ private:
   int serial_speed_ = 115200;
   bool vsc_initialized_ = false;
   double reconnect_time_ = 5.0;
-  bool src_auto_off_enabled_{ true };
+  bool src_auto_off_enabled_{ false };
+  bool src_pause_settings_message_enabled_{ false };
 
 
   // Setting Grab Values

@@ -87,6 +87,11 @@ VscProcess::VscProcess() : myEStopState(0)
     ROS_DEBUG("SRC Auto-Off Enable set to:  %s", src_auto_off_enabled_ ? "true" : "false");
   }
 
+  if (nh.getParam("src_pause_settings_message_enable", src_pause_settings_message_enabled_))
+  {
+    ROS_DEBUG("SRC Pause Settings Message Enable set to:  %s", src_pause_settings_message_enabled_ ? "true" : "false");
+  }
+
   // Grab VSC Settings
   readSettings();
 
@@ -123,7 +128,10 @@ VscProcess::VscProcess() : myEStopState(0)
   mainLoopTimer = rosNode.createTimer(ros::Duration(1.0 / VSC_INTERFACE_RATE), &VscProcess::processOneLoop, this);
 
   // Secondary Timer Callback for Pause Settings
-  // srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(VSC_PAUSE_SETTINGS_PERIOD_S), &VscProcess::requestSrcPauseSettings, this);
+  if (src_pause_settings_message_enabled_)
+  {
+    srcPauseSettingsRequestTimer = rosNode.createTimer(ros::Duration(VSC_PAUSE_SETTINGS_PERIOD_S), &VscProcess::requestSrcPauseSettings, this);
+  }
 
   // Init last time to now
   lastDataRx = ros::Time::now();
@@ -141,7 +149,7 @@ VscProcess::~VscProcess()
   receivedDisplayOffCommand(clear_msg);
   if (src_auto_off_enabled_)
   {
-    // srcAutoOffEnable();
+    srcAutoOffEnable();
   }
 
   if (vscInterface != NULL)
