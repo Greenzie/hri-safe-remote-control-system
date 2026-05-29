@@ -35,17 +35,6 @@ workflows:
       - *build_amd
       - *build_arm
 
-      - greenzie/debian_deploy_experimental:
-          name: "deploy_all_greenzie"
-          context: GREENZIE
-          filters:
-            branches:
-              only:
-                - << pipeline.parameters.filter-branch >>
-          requires:
-            - amd_debian_build
-            - arm64_debian_build
-
   manualdeploy:
     when: << pipeline.parameters.manual-deploy >>
     jobs:
