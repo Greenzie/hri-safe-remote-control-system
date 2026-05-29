@@ -7,39 +7,42 @@ parameters:
   manual-deploy:
     type: boolean
     default: false
-  filter-branch:
-    type: string
-    default: noetic
-
-_build_amd: &build_amd
-  greenzie/debian_build_simple:
-    name: "amd_debian_build"
-    context: GREENZIE
-    platform: amd64
-    executor: greenzie/debianize_amd64
-    generate_changelog: false
-
-_build_arm: &build_arm
-  greenzie/debian_build_simple:
-    name: "arm64_debian_build"
-    context: GREENZIE
-    platform: arm64
-    executor: greenzie/debianize_arm64
-    generate_changelog: false
 
 workflows:
   version: 2
   pushbuild:
     unless: << pipeline.parameters.manual-deploy >>
     jobs:
-      - *build_amd
-      - *build_arm
+      - greenzie/debian_build_simple:
+          name: "amd_debian_build"
+          context: GREENZIE
+          platform: amd64
+          executor: greenzie/debianize_amd64
+          generate_changelog: false
+
+      - greenzie/debian_build_simple:
+          name: "arm64_debian_build"
+          context: GREENZIE
+          platform: arm64
+          executor: greenzie/debianize_arm64
+          generate_changelog: false
 
   manualdeploy:
     when: << pipeline.parameters.manual-deploy >>
     jobs:
-      - *build_amd
-      - *build_arm
+      - greenzie/debian_build_simple:
+          name: "amd_debian_build"
+          context: GREENZIE
+          platform: amd64
+          executor: greenzie/debianize_amd64
+          generate_changelog: false
+
+      - greenzie/debian_build_simple:
+          name: "arm64_debian_build"
+          context: GREENZIE
+          platform: arm64
+          executor: greenzie/debianize_arm64
+          generate_changelog: false
 
       - greenzie/debian_deploy_experimental:
           name: "deploy_all_greenzie"
