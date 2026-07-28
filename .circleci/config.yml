@@ -7,7 +7,7 @@ parameters:
   manual-deploy:
     type: boolean
     default: false
-  deploy_public:
+  deploy-public:
     description: "Deploy only to greenzie-public-experimental (skips greenzie-experimental). For testing the public channel."
     type: boolean
     default: false
@@ -18,7 +18,7 @@ workflows:
     when:
       and:
         - not: << pipeline.parameters.manual-deploy >>
-        - not: << pipeline.parameters.deploy_public >>
+        - not: << pipeline.parameters.deploy-public >>
     jobs:
       - greenzie/debian_build_simple:
           name: "amd_debian_build"
@@ -70,7 +70,7 @@ workflows:
   manualdeploy-public:
     when:
       and:
-        - << pipeline.parameters.deploy_public >>
+        - << pipeline.parameters.deploy-public >>
         - not: << pipeline.parameters.manual-deploy >>
     jobs:
       - greenzie/debian_build_simple:
