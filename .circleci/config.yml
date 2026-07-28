@@ -9,7 +9,7 @@ parameters:
     type: boolean
     default: false
   deploy_public:
-    description: "Deploy only to greenzie-public-experimental (skips greenzie-experimental). For testing the public channel."
+    description: "[Testing purposes only] Deploy only to greenzie-public-experimental (skips greenzie-experimental)."
     type: boolean
     default: false
 
