@@ -5,6 +5,7 @@ orbs:
 
 parameters:
   manual_deploy:
+    description: "Trigger a manual deploy to greenzie-experimental and greenzie-public-experimental."
     type: boolean
     default: false
   deploy_public:
